@@ -2,10 +2,10 @@
 
 one:
   id: 
-  card_number: MyString
-  user_id: one
+  employee_id: 1
+  name: MyString
 
 two:
   id: 
-  card_number: MyString
-  user_id: two
+  employee_id: 1
+  name: MyString

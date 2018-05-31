@@ -1,8 +1,8 @@
 class CreateCards < ActiveRecord::Migration[5.2]
   def change
     create_table :cards do |t|
-      t.numeric :card_id
-      t.numeric :user_id
+      t.string :card_number, index: {unique: true}
+      t.references :user, foreign_key: true
 
       t.timestamps
     end

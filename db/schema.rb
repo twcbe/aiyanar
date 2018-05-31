@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2018_05_31_090215) do
+ActiveRecord::Schema.define(version: 2018_05_31_094704) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -47,10 +47,21 @@ ActiveRecord::Schema.define(version: 2018_05_31_090215) do
   end
 
   create_table "cards", force: :cascade do |t|
-    t.decimal "card_id"
-    t.decimal "user_id"
+    t.string "card_number"
+    t.bigint "user_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.index ["card_number"], name: "index_cards_on_card_number", unique: true
+    t.index ["user_id"], name: "index_cards_on_user_id"
   end
 
+  create_table "users", force: :cascade do |t|
+    t.integer "employee_id"
+    t.string "name"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["employee_id"], name: "index_users_on_employee_id", unique: true
+  end
+
+  add_foreign_key "cards", "users"
 end
