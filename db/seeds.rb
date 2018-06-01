@@ -22,9 +22,12 @@ if Rails.env.development?
   Card.create!(card_number: 'FAFA08')
   Card.create!(card_number: 'FAFA09')
   Card.create!(card_number: 'FAFA10')
-end
 
-if Rails.env.development?
+  Role.create!(name: 'Normal Employee')
+  Role.create!(name: 'Infra team')
+  Role.create!(name: 'Electrician')
+  Role.create!(name: 'Security')
+
   User.create!(name: 'Test user 1')
   User.create!(name: 'Test user 2')
   User.create!(name: 'Test user 3')
