@@ -20,8 +20,8 @@ ActiveAdmin.register User do
         column("Card") do |card|
           link_to "#{card.card_number}", admin_card_path(card)
         end
-      end if user.cards.empty?
-      b "No cards issued" unless user.cards.empty?
+      end unless user.cards.empty?
+      b "No cards issued" if user.cards.empty?
     end
 
     attributes_table(*default_attribute_table_rows)
