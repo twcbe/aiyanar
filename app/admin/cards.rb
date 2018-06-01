@@ -3,7 +3,7 @@ ActiveAdmin.register Card do
 # https://github.com/activeadmin/activeadmin/blob/master/docs/2-resource-customization.md#setting-up-strong-parameters
 #
 # permit_params :list, :of, :attributes, :on, :model
-  permit_params :card_number, :user
+  permit_params :card_number, :user_id
 #
 # or
 #
@@ -15,7 +15,11 @@ ActiveAdmin.register Card do
 
   form do |f|
     f.inputs do
-      f.input :card_number, input_html: { disabled: true } 
+      if card.card_number.nil?
+        f.input :card_number
+      else
+        f.input :card_number, input_html: { disabled: true }
+      end
       f.input :user
     end
     f.actions

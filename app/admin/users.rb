@@ -13,9 +13,21 @@ ActiveAdmin.register User do
 #   permitted
 # end
 
+  show title: :name do
+    panel "Issued Cards" do
+      table_for(user.cards) do
+        column("Card") do |card|
+          link_to "#{card.card_number}", admin_card_path(card)
+        end
+      end
+    end
+
+    active_admin_comments
+  end
+
   form do |f|
     f.inputs do
-      f.input :employee_id
+      f.input :employee_id, input_html: { disabled: true }
       f.input :name
     end
     f.actions
