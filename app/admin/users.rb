@@ -35,6 +35,7 @@ ActiveAdmin.register User do
         f.input :employee_id, input_html: { disabled: true }
       end
       f.input :name
+      f.input :roles, as: :check_boxes, collection: Role.all
     end
     f.actions
   end

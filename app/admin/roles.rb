@@ -3,7 +3,7 @@ ActiveAdmin.register Role do
 # https://github.com/activeadmin/activeadmin/blob/master/docs/2-resource-customization.md#setting-up-strong-parameters
 #
 # permit_params :list, :of, :attributes, :on, :model
-  permit_params :name
+  permit_params :name, :users
 #
 # or
 #
