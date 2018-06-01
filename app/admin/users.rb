@@ -14,20 +14,26 @@ ActiveAdmin.register User do
 # end
 
   show title: :name do
+
     panel "Issued Cards" do
       table_for(user.cards) do
         column("Card") do |card|
           link_to "#{card.card_number}", admin_card_path(card)
         end
-      end
+      end if user.cards.empty?
+      b "No cards issued" unless user.cards.empty?
     end
 
-    active_admin_comments
+    attributes_table(*default_attribute_table_rows)
   end
 
   form do |f|
     f.inputs do
-      f.input :employee_id, input_html: { disabled: true }
+      if user.new_record?
+        f.input :employee_id
+      else
+        f.input :employee_id, input_html: { disabled: true }
+      end
       f.input :name
     end
     f.actions
