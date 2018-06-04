@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2018_06_01_091731) do
+ActiveRecord::Schema.define(version: 2018_06_04_081840) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -48,6 +48,15 @@ ActiveRecord::Schema.define(version: 2018_06_01_091731) do
     t.index ["name"], name: "index_locks_on_name", unique: true
   end
 
+  create_table "permissions", force: :cascade do |t|
+    t.bigint "lock_id"
+    t.bigint "role_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["lock_id"], name: "index_permissions_on_lock_id"
+    t.index ["role_id"], name: "index_permissions_on_role_id"
+  end
+
   create_table "roles", force: :cascade do |t|
     t.string "name", null: false
     t.datetime "created_at", null: false
@@ -73,6 +82,8 @@ ActiveRecord::Schema.define(version: 2018_06_01_091731) do
   end
 
   add_foreign_key "cards", "users"
+  add_foreign_key "permissions", "locks"
+  add_foreign_key "permissions", "roles"
   add_foreign_key "roles_users", "roles"
   add_foreign_key "roles_users", "users"
 end
