@@ -20,7 +20,44 @@ class MqttRouterTest < ActiveSupport::TestCase
     mqtt_router.handle(message)
 
     assert_mock message_handler
+  end
 
+  test 'mqtt router should not throw exception if the given message is not json' do
+    message_handler = Minitest::Mock.new
+
+    def message_handler.card_read(_)
+      raise NoMethodError, "Unexpected call. card_read expected not to be called"
+    end
+
+    message = 'some non-json message'
+    mqtt_router = MqttRouter.new(message_handler)
+    mqtt_router.handle(message)
+
+    assert_mock message_handler
+  end
+
+  test 'mqtt router should not throw exception if the given message does not have the message field'  do
+    message_handler = Minitest::Mock.new
+
+    def message_handler.card_read(_)
+      raise NoMethodError, "Unexpected call. card_read expected not to be called"
+    end
+
+    message = '{"some_key":"some_message", "other_field": "other value"}'
+    mqtt_router = MqttRouter.new(message_handler)
+    mqtt_router.handle(message)
+
+    assert_mock message_handler
+  end
+
+  test 'mqtt router should not throw exception if the given message is unknown to the message handler'  do
+    message_handler = Minitest::Mock.new
+
+    message = '{"message":"unknown_message_name", "other_field": "other value"}'
+    mqtt_router = MqttRouter.new(message_handler)
+    mqtt_router.handle(message)
+
+    assert_mock message_handler
   end
 
 end

@@ -6,6 +6,7 @@ class CardHandler
   end
 
   def card_read(message)
+    return if message['card_number'].blank? || message['lock_name'].blank?
     is_access_allowed = AccessManager.authorize message['card_number'], message['lock_name']
     if is_access_allowed
       Rails.logger.info "[card_handler] Provided access to card number #{message['card_number']}, assigned to some user"
