@@ -3,8 +3,6 @@
 #include <ArduinoJson.h>
 #include <Wiegand.h>
 
-// Update these with values suitable for your network.
-
 #define d0 16
 #define d1 5
 #define d2 4
@@ -15,29 +13,65 @@
 #define d7 13
 #define d8 15
 
+#define card1Data0 d7
+#define card1Data1 d8
+#define card1Led   d6
+#define card1Beep  d5
+#define card2Data0 d3
+#define card2Data1 d4
+#define card2Led   d2
+#define card2Beep  d1
+#define lockRelay  d0
+
+#define LOCK_RELAY_DOOR_UNLOCKED LOW
+#define LOCK_RELAY_DOOR_LOCKED   HIGH
+#define CARD_1_BEEP_OFF          HIGH
+#define CARD_1_BEEP_ON           LOW
+#define CARD_1_LED_RED           HIGH
+#define CARD_1_LED_GREEN         LOW
+#define CARD_2_BEEP_OFF          HIGH
+#define CARD_2_BEEP_ON           LOW
+#define CARD_2_LED_RED           HIGH
+#define CARD_2_LED_GREEN         LOW
+
 const char* ssid = "twguest";
 const char* password = "crimson trout rewrite trustable ivy";
-const char* mqtt_server = "10.137.120.19";
+const char* mqttServer = "10.137.120.19";
 
 #define CARD_READER_TOPIC "access_control/card_readers"
 #define SERVER_TOPIC "access_control/server"
 
 WIEGAND wg1;
+WIEGAND wg2;
+
 WiFiClient espClient;
 PubSubClient client(espClient);
 long lastMsg = 0;
 char msg[250];
 
 void setup() {
-  pinMode(BUILTIN_LED, OUTPUT);     // Initialize the BUILTIN_LED pin as an output
+
+  pinMode(card1Beep, OUTPUT);
+  pinMode(card1Led,  OUTPUT);
+  pinMode(card2Beep, OUTPUT);
+  pinMode(card2Led,  OUTPUT);
+
+  digitalWrite(card1Beep, CARD_1_BEEP_OFF); // HIGH=beep_off    LOW=beep_on
+  digitalWrite(card1Led,  CARD_1_LED_RED);  // HIGH=red         LOW=green
+  digitalWrite(card2Beep, CARD_2_BEEP_OFF); // HIGH=beep_off    LOW=beep_on
+  digitalWrite(card2Led,  CARD_2_LED_RED);  // HIGH=red         LOW=green
+
+  digitalWrite(lockRelay, LOCK_RELAY_DOOR_LOCKED); // HIGH=door_locked LOW=door_unlocked
+
   Serial.begin(115200);
-  setup_wifi();
-  client.setServer(mqtt_server, 1883);
+  setupWifi();
+  client.setServer(mqttServer, 1883);
   client.setCallback(callback);
-  wg1.begin(d7, d8);
+  wg1.begin(card1Data0, card1Data1);
+  wg2.begin(card2Data0, card2Data1);
 }
 
-void setup_wifi() {
+void setupWifi() {
 
   delay(10);
   // We start by connecting to a WiFi network
@@ -58,66 +92,88 @@ void setup_wifi() {
   Serial.println(WiFi.localIP());
 }
 
-void callback(char* topic, byte* payload, unsigned int length) {
-  Serial.print("Message arrived [");
-  Serial.print(topic);
-  Serial.print("] ");
-  for (int i = 0; i < length; i++) {
-    Serial.print((char)payload[i]);
-  }
-  Serial.println();
-}
-
 void reconnect() {
-  // Loop until we're reconnected
   while (!client.connected()) {
     Serial.print("Attempting MQTT connection...");
-    // Attempt to connect
     if (client.connect("ESP8266Client")) {
       Serial.println("connected");
-      // Once connected, publish an announcement...
       client.publish(CARD_READER_TOPIC, "[Main entrance] reconnected");
-      // ... and resubscribe
       client.subscribe(SERVER_TOPIC);
     } else {
       Serial.print("failed, rc=");
       Serial.print(client.state());
       Serial.println(" try again in 2 seconds");
-      // Wait 2 seconds before retrying
       delay(2000);
     }
   }
 }
 
-void publish_message(char *card_number) {
+void publishCardReadMessage(unsigned long cardNumber, char* direction) {
+  char cardNumberHex[100]="";
+  snprintf(cardNumberHex, sizeof(cardNumberHex), "%lX", cardNumber);
   char payload[250]={};
-  String str_buffer;
+  String strBuffer;
   DynamicJsonBuffer  jsonBuffer(200);
   JsonObject& root = jsonBuffer.createObject();
 
   root["message"] = "card_read";
   root["lock_name"] = "Main entrance";
-  root["card_number"] = card_number;
-  root.printTo(str_buffer);
-  str_buffer.toCharArray(payload, sizeof(payload));
+  root["direction"] = direction;
+  root["card_number"] = cardNumberHex;
+  root.printTo(strBuffer);
+  strBuffer.toCharArray(payload, sizeof(payload));
 
   client.publish(CARD_READER_TOPIC, payload);
 }
 
+void callback(char* topic, byte* payload, unsigned int length) {
+  //handle messages
+
+  DynamicJsonBuffer  jsonBuffer(200);
+  JsonObject& root = jsonBuffer.parseObject((char*) payload);
+  char *message = root["message"];
+  char *lockName = root["lock_name"];
+  char *command = root["command"];
+
+  // if (strcmp(command, "open_door")==0) {
+  //   digitalWrite(lockRelay, LOCK_RELAY_DOOR_UNLOCKED);
+  //   // todo: lock after 15 seconds
+  // }
+
+  // - server to CR {"command": "open_door", "duration": 5, "beep_tone": "twice", "lock_name": "main_door" } - whenever card is swiped
+  // - server to CR {"command": "deny_access", "beep_tone": "something", "feedback_led": "toggle_twice"}
+  // - server to CR {"command": "close_door", "lock_name": "main_door" } - whenever card is swiped
+
+
+
+  // Serial.print("Message arrived [");
+  // Serial.print(topic);
+  // Serial.print("] ");
+  // for (int i = 0; i < length; i++) {
+  //   Serial.print((char)payload[i]);
+  // }
+  // Serial.println();
+}
+
 void loop() {
+  //MQTT
   if (!client.connected()) {
     Serial.println("MQTT not connected");
     reconnect();
   }
   client.loop();
+
+  //card reader 1
   if (wg1.available()) {
-    unsigned long card_number = wg1.getCode();
-    char card_number_hex[100]="";
-    snprintf(card_number_hex, sizeof(card_number_hex), "%lX", card_number);
-    publish_message(card_number_hex);
+    unsigned long cardNumber = wg1.getCode();
+    publishCardReadMessage(cardNumber, "enter");
   }
+
+  //card reader 2
+  if (wg2.available()) {
+    unsigned long cardNumber = wg2.getCode();
+    publishCardReadMessage(cardNumber, "exit");
+  }
+
   delay(100);
 }
-
-
-
