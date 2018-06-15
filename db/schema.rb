@@ -10,10 +10,13 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2018_06_04_081840) do
+ActiveRecord::Schema.define(version: 2018_06_15_085316) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
+
+# Could not dump table "access_logs" because of following StandardError
+#   Unknown type 'direction' for column 'direction'
 
   create_table "admin_users", force: :cascade do |t|
     t.string "email", default: "", null: false
@@ -81,6 +84,8 @@ ActiveRecord::Schema.define(version: 2018_06_04_081840) do
     t.index ["employee_id"], name: "index_users_on_employee_id", unique: true
   end
 
+  add_foreign_key "access_logs", "locks"
+  add_foreign_key "access_logs", "users"
   add_foreign_key "cards", "users"
   add_foreign_key "permissions", "locks"
   add_foreign_key "permissions", "roles"

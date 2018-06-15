@@ -7,7 +7,7 @@ class CardHandler
 
   def card_read(message)
     return if message['card_number'].blank? || message['lock_name'].blank?
-    is_access_allowed = AccessManager.authorize message['card_number'], message['lock_name']
+    is_access_allowed = AccessManager.new(message['card_number'], message['lock_name']).process
     if is_access_allowed
       Rails.logger.info "[card_handler] Provided access to card number #{message['card_number']}, assigned to some user"
       payload = {command: 'open_door', duration: 5, beep_tone: 'twice', lock_name: message['lock_name']}.to_json
