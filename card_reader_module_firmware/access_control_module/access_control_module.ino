@@ -53,9 +53,12 @@ enum class LockStates
 };
 
 void lockDoorCallback();
+void beepOnCallback();
+void beepOffCallback();
 
 Scheduler taskRunner;
 Task lockDoorTask(0, 1, &lockDoorCallback);
+Task beepTask(250, 4, &beepOnCallback);
 WIEGAND entryCardReader;
 WIEGAND exitCardReader;
 WiFiClient espClient;
@@ -78,6 +81,7 @@ void lockDoorCallback() {
   Serial.println("Locking door.");
   digitalWrite(LOCK_RELAY, DOOR_LOCKED);
   digitalWrite(ENTRY_CARD_READER_LED, LED_RED);
+  digitalWrite(EXIT_CARD_READER_LED, LED_RED);
   stateChangeTo(LockStates::LOCKED);
 }
 
@@ -91,8 +95,29 @@ void unlockDoorFor(unsigned long durationMillis) {
   Serial.println(" milliseconds");
   digitalWrite(LOCK_RELAY, DOOR_UNLOCKED);
   digitalWrite(ENTRY_CARD_READER_LED, LED_GREEN);
+  digitalWrite(EXIT_CARD_READER_LED, LED_GREEN);
   lockDoorAfter(durationMillis);
   stateChangeTo(LockStates::UNLOCKED_FOR_DURATION);
+}
+
+void beepOnCallback() {
+  digitalWrite(ENTRY_CARD_READER_BEEP, BEEP_ON);
+  digitalWrite(EXIT_CARD_READER_BEEP, BEEP_ON);
+  digitalWrite(ENTRY_CARD_READER_LED, LED_RED);
+  digitalWrite(EXIT_CARD_READER_LED, LED_RED);
+  beepTask.setCallback(&beepOffCallback);
+}
+
+void beepOffCallback() {
+  digitalWrite(ENTRY_CARD_READER_BEEP, BEEP_OFF);
+  digitalWrite(EXIT_CARD_READER_BEEP, BEEP_OFF);
+  beepTask.setCallback(&beepOnCallback);
+}
+
+void beepForInvalidCard() {
+  Serial.println("Beeping for invalid card.");
+  beepTask.setCallback(&beepOnCallback);
+  beepTask.restartDelayed(0);
 }
 
 void enterEmergencyMode() {
@@ -101,11 +126,13 @@ void enterEmergencyMode() {
   stateChangeTo(LockStates::EMERGENCY_UNLOCKED);
   lockDoorTask.disable();
   digitalWrite(ENTRY_CARD_READER_LED, LED_GREEN);
+  digitalWrite(EXIT_CARD_READER_LED, LED_GREEN);
 }
 
 void exitEmergencyMode(unsigned long durationMillis) {
   Serial.print("Exiting emergency mode. Locking door in ");
   Serial.print(durationMillis);
+
   Serial.println(" milliseconds");
   lockDoorAfter(durationMillis);
   stateChangeTo(LockStates::UNLOCKED_FOR_DURATION);
@@ -141,6 +168,7 @@ void setup() {
 
   taskRunner.init();
   taskRunner.addTask(lockDoorTask);
+  taskRunner.addTask(beepTask);
 }
 
 void setupWifi() {
@@ -221,7 +249,12 @@ void callback(char* topic, byte* payload, unsigned int length) {
         unsigned long unlockDuration = clamp(duration, DOOR_UNLOCK_MIN_DURATION, DOOR_UNLOCK_MAX_DURATION);
         unlockDoorFor(unlockDuration);
       }
+      if (strcmp(command, "deny_access") == 0)
+      {
+        beepForInvalidCard();
+      }
       break;
+
     case LockStates::UNLOCKED_FOR_DURATION:
       if (strcmp(command, "open_door")==0)
       {
@@ -230,7 +263,12 @@ void callback(char* topic, byte* payload, unsigned int length) {
         unsigned long unlockDuration = clamp(duration, DOOR_UNLOCK_MIN_DURATION, DOOR_UNLOCK_MAX_DURATION);
         unlockDoorFor(unlockDuration);
       }
+      if (strcmp(command, "deny_access") == 0)
+      {
+        beepForInvalidCard();
+      }
       break;
+
     case LockStates::EMERGENCY_UNLOCKED:
       if (strcmp(command, "end_emergency")==0)
       {
@@ -272,13 +310,3 @@ void loop() {
   taskRunner.execute();
   delay(100);
 }
-
-
-
-
-
-
-
-
-
-
