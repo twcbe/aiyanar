@@ -1,8 +1,9 @@
 class AccessManager
-  def initialize(card_number, lock_name)
+  def initialize(card_number, lock_name, direction)
     @card_number = card_number
     @card = Card.where({card_number: card_number}).first
     @lock = Lock.where({name: lock_name}).first
+    @direction = direction
   end
 
   def process
@@ -11,7 +12,7 @@ class AccessManager
                           lock_id: @lock.try(:id),
                           card_number: @card_number,
                           user_id: @card.try(:user).try(:id),
-                          direction: 'enter',
+                          direction: @direction,
                           access_provided: access_allowed}) unless @lock.try(:id).nil? || @card_number.nil?
     access_allowed
   end

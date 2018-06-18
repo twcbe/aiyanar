@@ -15,7 +15,8 @@ class CardHandlerTest < ActiveSupport::TestCase
     message = {
         'message' => 'card_read',
         'card_number' => 'ABCDEF',
-        'lock_name' => 'Main door'
+        'lock_name' => 'Main door',
+        'direction' => 'enter'
     }
     card_handler = CardHandler.new(mqtt_client)
     card_handler.card_read(message)
@@ -30,7 +31,8 @@ class CardHandlerTest < ActiveSupport::TestCase
     message = {
         'message' => 'card_read',
         'card_number' => 'ABCDEF',
-        'lock_name' => 'Main door'
+        'lock_name' => 'Main door',
+        'direction' => 'enter'
     }
     card_handler = CardHandler.new(mqtt_client)
     card_handler.card_read(message)
@@ -43,7 +45,8 @@ class CardHandlerTest < ActiveSupport::TestCase
 
     message = {
         'message' => 'card_read',
-        'lock_name' => 'Main door'
+        'lock_name' => 'Main door',
+        'direction' => 'enter'
     }
     card_handler = CardHandler.new(mqtt_client)
     card_handler.card_read(message)
@@ -56,7 +59,22 @@ class CardHandlerTest < ActiveSupport::TestCase
 
     message = {
         'message' => 'card_read',
-        'card_number' => 'ABCDEF'
+        'card_number' => 'ABCDEF',
+        'direction' => 'enter'
+    }
+    card_handler = CardHandler.new(mqtt_client)
+    card_handler.card_read(message)
+
+    assert_mock mqtt_client
+  end
+
+  test 'card handler should ignore invalid messages with missing direction field' do
+    mqtt_client = Minitest::Mock.new
+
+    message = {
+        'message' => 'card_read',
+        'card_number' => 'ABCDEF',
+        'lock_name' => 'Main door'
     }
     card_handler = CardHandler.new(mqtt_client)
     card_handler.card_read(message)
