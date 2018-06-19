@@ -3,7 +3,7 @@ ActiveAdmin.register User do
 # https://github.com/activeadmin/activeadmin/blob/master/docs/2-resource-customization.md#setting-up-strong-parameters
 #
 # permit_params :list, :of, :attributes, :on, :model
-  permit_params :employee_id, :name, card_ids: [], role_ids: []
+  permit_params :employee_id, :name, :enabled, card_ids: [], role_ids: []
 #
 # or
 #
@@ -76,6 +76,7 @@ ActiveAdmin.register User do
       f.input :name
       f.input :cards
       f.input :roles
+      f.input :enabled
     end
     f.actions
   end

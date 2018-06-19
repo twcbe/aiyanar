@@ -79,6 +79,7 @@ ActiveRecord::Schema.define(version: 2018_06_15_085316) do
   create_table "users", force: :cascade do |t|
     t.integer "employee_id"
     t.string "name", null: false
+    t.boolean "enabled", default: false, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["employee_id"], name: "index_users_on_employee_id", unique: true

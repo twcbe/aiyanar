@@ -7,7 +7,7 @@ class AccessManager
   end
 
   def process
-    access_allowed = is_card_valid(@card) && is_card_assigned_to_user(@card) && is_lock_valid(@lock) && has_permission(@lock, @card.user.roles)
+    access_allowed = is_card_valid(@card) && is_card_assigned_to_user(@card) && @card.user.enabled && is_lock_valid(@lock) && has_permission(@lock, @card.user.roles)
     AccessLog.create!({
                           lock_id: @lock.try(:id),
                           card_number: @card_number,
@@ -19,20 +19,21 @@ class AccessManager
 
   private
 
-  def has_permission(lock, roles)
-    permission = Permission.where({lock: lock, role: roles}).first
-    !permission.nil?
+  def is_card_valid(card)
+    !card.nil?
+  end
+  
+  def is_card_assigned_to_user(card)
+    !card.user.nil?
   end
 
   def is_lock_valid(lock)
     !lock.nil?
   end
 
-  def is_card_assigned_to_user(card)
-    !card.user.nil?
+  def has_permission(lock, roles)
+    permission = Permission.where({lock: lock, role: roles}).first
+    !permission.nil?
   end
-
-  def is_card_valid(card)
-    !card.nil?
-  end
+  
 end

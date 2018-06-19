@@ -7,7 +7,7 @@ class CardHandlerTest < ActiveSupport::TestCase
     mqtt_client.expect(:publish, nil, ['access_control/server', {command: 'open_door', duration: 5, beep_tone: 'twice', lock_name: 'Main door'}.to_json])
 
     security = Role.create!(name: 'Security')
-    user = User.create!(name: 'test user', roles: [security])
+    user = User.create!(name: 'test user', roles: [security], enabled: true)
     Card.create!(card_number: 'ABCDEF', user: user)
     main_door = Lock.create!(name: 'Main door')
     Permission.create!(role: security, lock: main_door)
