@@ -8,7 +8,7 @@ class CardHandlerTest < ActiveSupport::TestCase
 
     security = Role.create!(name: 'Security')
     user = User.create!(name: 'test user', roles: [security], enabled: true)
-    Card.create!(card_number: 'ABCDEF', user: user)
+    Card.create!(card_number: 'ABCDEF', user: user, enabled: true)
     main_door = Lock.create!(name: 'Main door')
     Permission.create!(role: security, lock: main_door)
 

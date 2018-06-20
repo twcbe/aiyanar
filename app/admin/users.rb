@@ -41,19 +41,19 @@ ActiveAdmin.register User do
       end
       table_for(access_logs_for_user) do
         column('Lock') do |access_log|
-          link_to "#{access_log.lock.name}", admin_lock_path(access_log.lock)
+          link_to access_log.lock.name, admin_lock_path(access_log.lock)
         end
         column('Card') do |access_log|
-          "#{access_log.card_number}"
+          access_log.card_number
         end
         column('Direction') do |access_log|
-          "#{access_log.direction}"
+          access_log.direction
         end
         column('Access Provided') do |access_log|
-          "#{access_log.access_provided}"
+          access_log.access_provided
         end
         column('Created at') do |access_log|
-          "#{access_log.created_at}"
+          access_log.created_at
         end
         tr do
           td do

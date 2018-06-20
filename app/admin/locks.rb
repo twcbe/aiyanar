@@ -23,19 +23,19 @@ ActiveAdmin.register Lock do
       end
       table_for(access_logs_for_lock) do
         column('Card') do |access_log|
-          "#{access_log.card_number}"
+          access_log.card_number
         end
         column('User') do |access_log|
-          link_to "#{access_log.user.name}", admin_user_path(access_log.user)
+          link_to access_log.user.name, admin_user_path(access_log.user) unless access_log.user.nil?
         end
         column('Direction') do |access_log|
-          "#{access_log.direction}"
+          access_log.direction
         end
         column('Access Provided') do |access_log|
-          "#{access_log.access_provided}"
+          access_log.access_provided
         end
         column('Created at') do |access_log|
-          "#{access_log.created_at}"
+          access_log.created_at
         end
         tr do
           td do
