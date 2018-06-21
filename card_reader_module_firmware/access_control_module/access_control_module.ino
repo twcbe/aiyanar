@@ -58,7 +58,7 @@ void beepOffCallback();
 
 Scheduler taskRunner;
 Task lockDoorTask(0, 1, &lockDoorCallback);
-Task beepTask(250, 4, &beepOnCallback);
+Task beepTask(100, 4, &beepOnCallback);
 WIEGAND entryCardReader;
 WIEGAND exitCardReader;
 WiFiClient espClient;
@@ -105,6 +105,7 @@ void beepOnCallback() {
   digitalWrite(EXIT_CARD_READER_BEEP, BEEP_ON);
   digitalWrite(ENTRY_CARD_READER_LED, LED_RED);
   digitalWrite(EXIT_CARD_READER_LED, LED_RED);
+  beepTask.setInterval(100);
   beepTask.setCallback(&beepOffCallback);
 }
 
@@ -151,13 +152,7 @@ void setup() {
   digitalWrite(ENTRY_CARD_READER_LED,  LED_RED);  // HIGH=red         LOW=green
   digitalWrite(EXIT_CARD_READER_BEEP,  BEEP_OFF); // HIGH=beep_off    LOW=beep_on
   digitalWrite(EXIT_CARD_READER_LED,   LED_RED);  // HIGH=red         LOW=green
-
-  delay(1000);
-  digitalWrite(LOCK_RELAY, DOOR_LOCKED); // HIGH=door_locked LOW=door_unlocked
-  delay(1000);
   digitalWrite(LOCK_RELAY, DOOR_UNLOCKED); // HIGH=door_locked LOW=door_unlocked
-  delay(1000);
-  digitalWrite(LOCK_RELAY, DOOR_LOCKED); // HIGH=door_locked LOW=door_unlocked
 
   Serial.begin(115200);
   setupWifi();
@@ -308,5 +303,4 @@ void loop() {
   }
 
   taskRunner.execute();
-  delay(100);
 }
