@@ -3,6 +3,7 @@
 #include <ArduinoJson.h>
 #include <Wiegand.h>
 #include <TaskScheduler.h>
+#include <EEPROM.h>
 
 // customizable options:
 #define CARD_READER_TOPIC "access_control/card_readers"
@@ -128,6 +129,8 @@ void enterEmergencyMode() {
   lockDoorTask.disable();
   digitalWrite(ENTRY_CARD_READER_LED, LED_GREEN);
   digitalWrite(EXIT_CARD_READER_LED, LED_GREEN);
+  EEPROM.write(0, 1);
+  EEPROM.commit();
 }
 
 void exitEmergencyMode(unsigned long durationMillis) {
@@ -137,10 +140,20 @@ void exitEmergencyMode(unsigned long durationMillis) {
   Serial.println(" milliseconds");
   lockDoorAfter(durationMillis);
   stateChangeTo(LockStates::UNLOCKED_FOR_DURATION);
+  EEPROM.write(0, 0);
+  EEPROM.commit();
+}
+
+void loadStateFromStorage() {
+  unsigned emergencyMode = EEPROM.read(0);
+  if(emergencyMode) {
+    enterEmergencyMode();
+  }
 }
 
 void setup() {
 
+  EEPROM.begin(512);
   pinMode(ENTRY_CARD_READER_BEEP, OUTPUT);
   pinMode(ENTRY_CARD_READER_LED,  OUTPUT);
   pinMode(EXIT_CARD_READER_BEEP,  OUTPUT);
@@ -152,7 +165,7 @@ void setup() {
   digitalWrite(ENTRY_CARD_READER_LED,  LED_RED);  // HIGH=red         LOW=green
   digitalWrite(EXIT_CARD_READER_BEEP,  BEEP_OFF); // HIGH=beep_off    LOW=beep_on
   digitalWrite(EXIT_CARD_READER_LED,   LED_RED);  // HIGH=red         LOW=green
-  digitalWrite(LOCK_RELAY, DOOR_UNLOCKED); // HIGH=door_locked LOW=door_unlocked
+  digitalWrite(LOCK_RELAY, DOOR_LOCKED);          // HIGH=door_locked LOW=door_unlocked
 
   Serial.begin(115200);
   setupWifi();
@@ -164,6 +177,8 @@ void setup() {
   taskRunner.init();
   taskRunner.addTask(lockDoorTask);
   taskRunner.addTask(beepTask);
+
+  loadStateFromStorage();
 }
 
 void setupWifi() {
@@ -304,3 +319,5 @@ void loop() {
 
   taskRunner.execute();
 }
+
+
