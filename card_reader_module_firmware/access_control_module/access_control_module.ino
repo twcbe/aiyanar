@@ -4,7 +4,11 @@
 #include <Wiegand.h>
 #include <TaskScheduler.h>
 #include <EEPROM.h>
+#include <ESP8266mDNS.h>
+#include <WiFiUdp.h>
+#include <ArduinoOTA.h>
 
+#define VERSION_STRING "1.0"
 // customizable options:
 #define CARD_READER_TOPIC "access_control/card_readers"
 #define SERVER_TOPIC      "access_control/server"
@@ -151,6 +155,15 @@ void loadStateFromStorage() {
   }
 }
 
+void publishStartupMessage() {
+  //MQTT
+  if (!client.connected()) {
+    Serial.println("MQTT not connected");
+    reconnect();
+  }
+  client.publish(CARD_READER_TOPIC, "[Main entrance] startup complete. version " VERSION_STRING);
+}
+
 void setup() {
 
   EEPROM.begin(512);
@@ -169,6 +182,7 @@ void setup() {
 
   Serial.begin(115200);
   setupWifi();
+  setupOTA();
   client.setServer(mqttServer, 1883);
   client.setCallback(callback);
   entryCardReader.begin(ENTRY_CARD_READER_DATA0, ENTRY_CARD_READER_DATA1);
@@ -179,6 +193,47 @@ void setup() {
   taskRunner.addTask(beepTask);
 
   loadStateFromStorage();
+  publishStartupMessage();
+}
+
+void setupOTA() {
+  // Port defaults to 8266
+  ArduinoOTA.setPort(8266);
+
+  // Hostname defaults to esp8266-[ChipID]
+  ArduinoOTA.setHostname("access_control_main_entrance_esp8266");
+
+  // No authentication by default
+  // ArduinoOTA.setPassword("admin");
+
+  // Password can be set with it's md5 value as well
+  // MD5(admin) = 21232f297a57a5a743894a0e4a801fc3
+  // ArduinoOTA.setPasswordHash("21232f297a57a5a743894a0e4a801fc3");
+  ArduinoOTA.onStart([]() {
+    String type;
+    if (ArduinoOTA.getCommand() == U_FLASH)
+      type = "sketch";
+    else // U_SPIFFS
+      type = "filesystem";
+
+    // NOTE: if updating SPIFFS this would be the place to unmount SPIFFS using SPIFFS.end()
+    Serial.println("[OTA] Start updating " + type);
+  });
+  ArduinoOTA.onEnd([]() {
+    Serial.println("\n[OTA] Ota successfully completed.");
+  });
+  ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {
+    Serial.printf("[OTA] Progress: %u%% (%u/%u)\n", (100 * progress / total), progress, total);
+  });
+  ArduinoOTA.onError([](ota_error_t error) {
+    Serial.printf("[OTA] Error[%u]: ", error);
+    if (error == OTA_AUTH_ERROR) Serial.println("[OTA] Auth Failed");
+    else if (error == OTA_BEGIN_ERROR) Serial.println("[OTA] Begin Failed");
+    else if (error == OTA_CONNECT_ERROR) Serial.println("[OTA] Connect Failed");
+    else if (error == OTA_RECEIVE_ERROR) Serial.println("[OTA] Receive Failed");
+    else if (error == OTA_END_ERROR) Serial.println("[OTA] End Failed");
+  });
+  ArduinoOTA.begin();
 }
 
 void setupWifi() {
@@ -191,9 +246,16 @@ void setupWifi() {
 
   WiFi.begin(ssid, password);
 
+  int tries = 0;
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
     Serial.print(".");
+    tries++;
+    if (tries>20)
+    {
+      Serial.print("Connection failed. Rebooting...");
+      ESP.restart();
+    }
   }
 
   Serial.println("");
@@ -318,6 +380,7 @@ void loop() {
   }
 
   taskRunner.execute();
+  ArduinoOTA.handle();
 }
 
 
