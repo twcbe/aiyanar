@@ -8,11 +8,12 @@
 #include <WiFiUdp.h>
 #include <ArduinoOTA.h>
 
-#define VERSION_STRING "1.0"
-// customizable options:
-#define CARD_READER_TOPIC "access_control/card_readers"
-#define SERVER_TOPIC      "access_control/server"
+#define VERSION_STRING "1.2"
 
+// customizable options:
+#define CARD_READER_TOPIC        "access_control/card_readers"
+#define SERVER_TOPIC             "access_control/server"
+//TODO #define STATIC_IP                139.59.81.248
 #define DOOR_UNLOCK_MIN_DURATION 1000
 #define DOOR_UNLOCK_MAX_DURATION 30000
 
@@ -32,8 +33,8 @@ const char* mqttServer = "10.137.120.19";
 #define d8 15
 
 #define ENTRY_CARD_READER_DATA0 d7
-#define ENTRY_CARD_READER_DATA1 d8
-#define ENTRY_CARD_READER_LED   d6
+#define ENTRY_CARD_READER_DATA1 d6
+#define ENTRY_CARD_READER_LED   d8
 #define ENTRY_CARD_READER_BEEP  d5
 #define EXIT_CARD_READER_DATA0  d3
 #define EXIT_CARD_READER_DATA1  d4
@@ -382,5 +383,6 @@ void loop() {
   taskRunner.execute();
   ArduinoOTA.handle();
 }
+
 
 
