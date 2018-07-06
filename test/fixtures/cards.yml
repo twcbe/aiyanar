@@ -1,0 +1,10 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  id: 401
+  card_number: 768549
+
+two:
+  id: 402
+  card_number: 536472
+  user_id: 101

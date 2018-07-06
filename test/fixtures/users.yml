@@ -1,0 +1,17 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+NormalEmployee1:
+  id: 101
+  employee_id: 1111
+  name: NormalEmployee1
+
+
+NormalEmployee2:
+  id: 102
+  employee_id: 2222
+  name: NormalEmployee2
+
+UserWithoutEmployeeId:
+  id: 103
+  employee_id: null
+  name: UserWithoutEmployeeId1
