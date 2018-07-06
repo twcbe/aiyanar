@@ -1,24 +1,6 @@
-# README
 
-This README would normally document whatever steps are necessary to get the
-application up and running.
+[![CircleCI](https://circleci.com/gh/twcbe/aiyanar.svg?style=svg)](https://circleci.com/gh/twcbe/aiyanar)
 
-Things you may want to cover:
 
-* Ruby version
+![Docker Build Status](https://img.shields.io/docker/build/twcbe/aiyanar.svg?style=plastic)
 
-* System dependencies
-
-* Configuration
-
-* Database creation
-
-* Database initialization
-
-* How to run the test suite
-
-* Services (job queues, cache servers, search engines, etc.)
-
-* Deployment instructions
-
-* ...
