@@ -35,4 +35,4 @@ jobs:
       - run:
           name: run tests
           command: |
-            ./bin/rails test -v --backtrace
+            bundle exec rake test -v --backtrace
