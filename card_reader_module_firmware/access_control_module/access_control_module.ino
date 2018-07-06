@@ -11,6 +11,7 @@
 #define VERSION_STRING "1.2"
 
 // customizable options:
+#define LOCK_NAME "Main entrance"
 #define CARD_READER_TOPIC        "access_control/card_readers"
 #define SERVER_TOPIC             "access_control/server"
 //TODO #define STATIC_IP                139.59.81.248
@@ -162,7 +163,7 @@ void publishStartupMessage() {
     Serial.println("MQTT not connected");
     reconnect();
   }
-  client.publish(CARD_READER_TOPIC, "[Main entrance] startup complete. version " VERSION_STRING);
+  client.publish(CARD_READER_TOPIC, "[" LOCK_NAME "] startup complete. version " VERSION_STRING);
 }
 
 void setup() {
@@ -270,7 +271,7 @@ void reconnect() {
     Serial.print("Attempting MQTT connection...");
     if (client.connect("ESP8266Client")) {
       Serial.println("connected");
-      client.publish(CARD_READER_TOPIC, "[Main entrance] reconnected");
+      client.publish(CARD_READER_TOPIC, "[" LOCK_NAME "] reconnected");
       client.subscribe(SERVER_TOPIC);
     } else {
       Serial.print("failed, rc=");
@@ -290,7 +291,7 @@ void publishCardReadMessage(unsigned long cardNumber, char* direction) {
   JsonObject& root = jsonBuffer.createObject();
 
   root["message"] = "card_read";
-  root["lock_name"] = "Main entrance";
+  root["lock_name"] = LOCK_NAME;
   root["direction"] = direction;
   root["card_number"] = cardNumberHex;
   root.printTo(strBuffer);
