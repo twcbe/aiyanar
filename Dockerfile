@@ -18,7 +18,6 @@ RUN bundle install --deployment
 COPY . .
 
 RUN bundle exec rake assets:clobber assets:precompile
-RUN ln -nfs /data /usr/src/app/db
 ENV RAILS_ENV production
 ENV RAILS_LOG_TO_STDOUT true
 CMD ["bundle", "exec", "rails", "s", "-p", "3000", "-b", "0.0.0.0"]
