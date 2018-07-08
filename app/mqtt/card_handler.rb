@@ -16,6 +16,9 @@ class CardHandler
       payload = {command: 'deny_access', beep_tone: 'something', feedback_led: 'toggle_twice'}.to_json
     end
     Rails.logger.info "[card_handler] sending message: #{payload}"
+    ActionCable.server.broadcast 'card_read_messages',
+                                 card_number: message['card_number'],
+                                 lock: message['lock_name']
     @mqtt_client.publish(SERVER_TOPIC, payload)
   end
 
