@@ -1,4 +1,5 @@
 CARD_READER_TOPIC = 'access_control/card_readers'
+FACE_RECOGNITION_TOPIC = 'face_recognition'
 MQTT_BROKER_HOST = '10.137.120.19'
 MQTT_BROKER_PORT = 1883
 
@@ -17,11 +18,16 @@ class MqttHandler
     mqtt_client = MqttClient.new(host = MQTT_BROKER_HOST, port = MQTT_BROKER_PORT)
     Rails.logger.info '[mqtt_handler] Connected to broker'
 
-    mqtt_router = MqttRouter.new(CardHandler.new(mqtt_client))
+    topic_handlers = {CARD_READER_TOPIC => CardHandler.new(mqtt_client)} # , FACE_RECOGNITION_TOPIC => nil}
+    mqtt_router = MqttRouter.new(topic_handlers)
 
-    mqtt_client.subscribe_and_run CARD_READER_TOPIC do |_, payload|
+    topic_handlers.keys.each do |topic|
+      mqtt_client.subscribe topic
+    end
+
+    mqtt_client.get do |topic, payload|
       log_and_ignore_exception do
-        mqtt_router.handle payload
+        mqtt_router.handle topic, payload
       end
     end
   end

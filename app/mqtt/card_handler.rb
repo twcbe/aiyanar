@@ -22,4 +22,9 @@ class CardHandler
     @mqtt_client.publish(SERVER_TOPIC, payload)
   end
 
+  def process(payload)
+    message_type = payload['message']
+    raise RuntimeError.new('Invalid message') if message_type.nil? || !self.respond_to?(message_type)
+    self.send(message_type, payload)
+  end
 end

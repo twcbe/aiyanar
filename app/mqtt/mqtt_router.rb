@@ -1,20 +1,22 @@
 class MqttRouter
 
-  def initialize(message_handler)
-    @message_handler = message_handler
+  def initialize(handlers = {})
+    @handlers = handlers
   end
 
-  def handle(payload)
+  def handle(topic, payload)
     Rails.logger.info "[mqtt_handler] Processing message: #{payload}"
     begin
-      payload = JSON.parse(payload)
-      message_type = payload['message']
-      @message_handler.send(message_type, payload) if !message_type.nil? && @message_handler.respond_to?(message_type)
+      handler = @handlers[topic]
+      handler.process JSON.parse(payload)
     rescue JSON::ParserError => _
-      Rails.logger.info "[mqtt_handler] unknown message or unable to parse as JSON; Ignoring."
+      Rails.logger.info "[mqtt_handler] Unable to parse as JSON; Ignoring."
+    rescue RuntimeError => _
+      Rails.logger.info "[mqtt_handler] Unknown message; Ignoring."
     ensure
       Rails.logger.info "[mqtt_handler] End processing"
     end
   end
+
 
 end

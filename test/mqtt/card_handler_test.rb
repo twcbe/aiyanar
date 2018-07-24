@@ -82,4 +82,35 @@ class CardHandlerTest < ActiveSupport::TestCase
     assert_mock mqtt_client
   end
 
+  test 'card handler should throw runtime exception if the given message does not have the message field'  do
+    mqtt_client = Minitest::Mock.new
+    card_handler = CardHandler.new(mqtt_client)
+
+    message = {'some_key' => 'some_message', 'other_field' => 'other value'}
+    err = assert_raises(RuntimeError) {card_handler.process(message)}
+    assert_equal( 'Invalid message', err.message)
+  end
+
+  test 'card_handler.process should route given message to corresponding method' do
+    mqtt_client = Minitest::Mock.new
+    mqtt_client.expect(:publish, nil, ['access_control/server', {command: 'open_door', duration: 5, beep_tone: 'twice', lock_name: 'Main door'}.to_json])
+
+    security = Role.create!(name: 'Security')
+    user = User.create!(name: 'test user', roles: [security], enabled: true)
+    Card.create!(card_number: 'ABCDEF', user: user, enabled: true)
+    main_door = Lock.create!(name: 'Main door')
+    Permission.create!(role: security, lock: main_door)
+
+    message = {
+        'message' => 'card_read',
+        'card_number' => 'ABCDEF',
+        'lock_name' => 'Main door',
+        'direction' => 'enter'
+    }
+    card_handler = CardHandler.new(mqtt_client)
+    card_handler.process(message)
+
+    assert_mock mqtt_client
+  end
+
 end
