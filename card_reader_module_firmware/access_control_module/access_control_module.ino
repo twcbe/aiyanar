@@ -96,13 +96,17 @@ void lockDoorAfter(unsigned long durationMillis) {
   lockDoorTask.restartDelayed(durationMillis);
 }
 
+void unlockDoor() {
+  digitalWrite(LOCK_RELAY, DOOR_UNLOCKED);
+  digitalWrite(ENTRY_CARD_READER_LED, LED_GREEN);
+  digitalWrite(EXIT_CARD_READER_LED, LED_GREEN);
+}
+
 void unlockDoorFor(unsigned long durationMillis) {
   Serial.print("Unlocking door for ");
   Serial.print(durationMillis);
   Serial.println(" milliseconds");
-  digitalWrite(LOCK_RELAY, DOOR_UNLOCKED);
-  digitalWrite(ENTRY_CARD_READER_LED, LED_GREEN);
-  digitalWrite(EXIT_CARD_READER_LED, LED_GREEN);
+  unlockDoor();
   lockDoorAfter(durationMillis);
   stateChangeTo(LockStates::UNLOCKED_FOR_DURATION);
 }
@@ -130,11 +134,9 @@ void beepForInvalidCard() {
 
 void enterEmergencyMode() {
   Serial.print("Entering emergency mode. Unlocking door.");
-  digitalWrite(LOCK_RELAY, DOOR_UNLOCKED);
+  unlockDoor();
   stateChangeTo(LockStates::EMERGENCY_UNLOCKED);
   lockDoorTask.disable();
-  digitalWrite(ENTRY_CARD_READER_LED, LED_GREEN);
-  digitalWrite(EXIT_CARD_READER_LED, LED_GREEN);
   EEPROM.write(0, 1);
   EEPROM.commit();
 }
@@ -154,6 +156,8 @@ void loadStateFromStorage() {
   unsigned emergencyMode = EEPROM.read(0);
   if(emergencyMode) {
     enterEmergencyMode();
+  } else {
+    digitalWrite(LOCK_RELAY, DOOR_LOCKED);          // HIGH=door_locked LOW=door_unlocked
   }
 }
 
@@ -180,7 +184,6 @@ void setup() {
   digitalWrite(ENTRY_CARD_READER_LED,  LED_RED);  // HIGH=red         LOW=green
   digitalWrite(EXIT_CARD_READER_BEEP,  BEEP_OFF); // HIGH=beep_off    LOW=beep_on
   digitalWrite(EXIT_CARD_READER_LED,   LED_RED);  // HIGH=red         LOW=green
-  digitalWrite(LOCK_RELAY, DOOR_LOCKED);          // HIGH=door_locked LOW=door_unlocked
 
   Serial.begin(115200);
   setupWifi();
@@ -365,7 +368,9 @@ void loop() {
   //MQTT
   if (!client.connected()) {
     Serial.println("MQTT not connected");
+    unlockDoor();
     reconnect();
+    loadStateFromStorage();
   }
   client.loop();
 
