@@ -10,16 +10,17 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2018_06_15_085316) do
+ActiveRecord::Schema.define(version: 2018_07_25_075558) do
 
   create_table "access_logs", force: :cascade do |t|
     t.integer "lock_id", null: false
-    t.string "card_number", null: false
+    t.string "card_number"
     t.integer "user_id"
     t.string "direction", null: false
     t.boolean "access_provided", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "access_method", default: "access_card", null: false
     t.index ["lock_id"], name: "index_access_logs_on_lock_id"
     t.index ["user_id"], name: "index_access_logs_on_user_id"
   end
