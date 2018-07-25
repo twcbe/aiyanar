@@ -8,18 +8,21 @@
 #include <WiFiUdp.h>
 #include <ArduinoOTA.h>
 
-#define VERSION_STRING "1.2"
+#define VERSION_STRING "1.3"
+#define USE_STATIC_IP
 
 // customizable options:
-#define LOCK_NAME "Main entrance"
+#define STATIC_IP_ADDRESS        10, 137,120,250
+#define STATIC_IP_GATEWAY        10, 137,120,1
+#define STATIC_IP_SUBNET         255,255,255,0
+#define LOCK_NAME                "Main entrance"
 #define CARD_READER_TOPIC        "access_control/card_readers"
 #define SERVER_TOPIC             "access_control/server"
-//TODO #define STATIC_IP                139.59.81.248
 #define DOOR_UNLOCK_MIN_DURATION 1000
 #define DOOR_UNLOCK_MAX_DURATION 30000
 
-const char* ssid = "twguest";
-const char* password = "crimson trout rewrite trustable ivy";
+const char* ssid = FILL_IN_SSID_STRING;
+const char* password = FILL_IN_PASSWORD_STRING;
 const char* mqttServer = "10.137.120.19";
 // END customizable options
 
@@ -167,7 +170,9 @@ void publishStartupMessage() {
     Serial.println("MQTT not connected");
     reconnect();
   }
-  client.publish(CARD_READER_TOPIC, "[" LOCK_NAME "] startup complete. version " VERSION_STRING);
+  char buffer[150];
+  snprintf(buffer, sizeof(buffer), "[" LOCK_NAME "] (%s) startup complete. version " VERSION_STRING, WiFi.localIP().toString().c_str());
+  client.publish(CARD_READER_TOPIC, buffer);
 }
 
 void setup() {
@@ -249,6 +254,12 @@ void setupWifi() {
   Serial.print("Connecting to ");
   Serial.println(ssid);
 
+#ifdef USE_STATIC_IP
+  IPAddress ip(STATIC_IP_ADDRESS);
+  IPAddress gateway(STATIC_IP_GATEWAY);
+  IPAddress subnet(STATIC_IP_SUBNET);
+  WiFi.config(ip,gateway,subnet);
+#endif
   WiFi.begin(ssid, password);
 
   int tries = 0;
