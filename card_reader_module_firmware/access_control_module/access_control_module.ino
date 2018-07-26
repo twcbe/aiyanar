@@ -13,7 +13,7 @@
 
 // customizable options:
 #define STATIC_IP_ADDRESS        10, 137,120,250
-#define STATIC_IP_GATEWAY        10, 137,120,1
+#define STATIC_IP_GATEWAY        10, 137,120,254
 #define STATIC_IP_SUBNET         255,255,255,0
 #define LOCK_NAME                "Main entrance"
 #define CARD_READER_TOPIC        "access_control/card_readers"
@@ -283,7 +283,7 @@ void setupWifi() {
 void reconnect() {
   while (!client.connected()) {
     Serial.print("Attempting MQTT connection...");
-    if (client.connect("ESP8266Client")) {
+    if (client.connect(LOCK_NAME " CARD READER")) {
       Serial.println("connected");
       client.publish(CARD_READER_TOPIC, "[" LOCK_NAME "] reconnected");
       client.subscribe(SERVER_TOPIC);
