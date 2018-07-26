@@ -1,3 +1,5 @@
 
 mqtt_host: 10.137.120.19
 mqtt_port: 1883
+
+redis_url: redis://10.137.120.19:6379/1
