@@ -11,6 +11,7 @@ class CardAccessManager < AccessManager
     AccessLog.create!({
                           lock_id: @lock.try(:id),
                           card_number: @card_number,
+                          access_method: 'access_card',
                           user_id: @card.try(:user).try(:id),
                           direction: @direction,
                           access_provided: access_allowed}) unless @lock.try(:id).nil? || @card_number.nil?

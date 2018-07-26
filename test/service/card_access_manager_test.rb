@@ -12,7 +12,7 @@ class CardAccessManagerTest < ActiveSupport::TestCase
     Permission.create!(role: normal_user_role, lock: main_door_lock)
 
     assert_equal(true, CardAccessManager.new(card_number, lock_name, direction).process)
-    assert_equal(1, AccessLog.where({user_id: user.id, card_number: card_number, lock_id: main_door_lock.id, direction: direction, access_provided: true}).size)
+    assert_equal(1, AccessLog.where({user_id: user.id, access_method: 'access_card', card_number: card_number, lock_id: main_door_lock.id, direction: direction, access_provided: true}).size)
   end
 
   test 'access manager should deny access to invalid cards and log the attempt' do
@@ -21,7 +21,7 @@ class CardAccessManagerTest < ActiveSupport::TestCase
     actual = CardAccessManager.new(card_number, Lock.first.name, direction).process
 
     assert_equal(false, actual)
-    assert_equal(1, AccessLog.where({card_number: card_number, lock_id: Lock.first.id, direction: direction, access_provided: false}).size)
+    assert_equal(1, AccessLog.where({access_method: 'access_card', card_number: card_number, lock_id: Lock.first.id, direction: direction, access_provided: false}).size)
   end
 
   test 'access manager should deny access to unassigned cards and log the attempt' do
@@ -30,7 +30,7 @@ class CardAccessManagerTest < ActiveSupport::TestCase
     Card.create!(card_number: card_number, enabled: true)
 
     assert_equal(false, CardAccessManager.new(card_number, Lock.first.name, direction).process)
-    assert_equal(1, AccessLog.where({card_number: card_number, lock_id: Lock.first.id, direction: direction, access_provided: false}).size)
+    assert_equal(1, AccessLog.where({access_method: 'access_card', card_number: card_number, lock_id: Lock.first.id, direction: direction, access_provided: false}).size)
   end
 
   test 'access manager should deny access to unknown lock and dont log the attempt' do
@@ -40,7 +40,7 @@ class CardAccessManagerTest < ActiveSupport::TestCase
     Card.create!(card_number: card_number, user: user, enabled: true)
 
     assert_equal(false, CardAccessManager.new(card_number, 'invalid lock', direction).process)
-    assert_equal(0, AccessLog.where({card_number: card_number, direction: direction, access_provided: false}).size)
+    assert_equal(0, AccessLog.where({access_method: 'access_card', card_number: card_number, direction: direction, access_provided: false}).size)
   end
 
   test 'access manager should deny access to valid cards if the assigned user is enabled but dont have permission for given door and log the attempt' do
@@ -53,7 +53,7 @@ class CardAccessManagerTest < ActiveSupport::TestCase
     Role.create!(name: 'Normal user')
 
     assert_equal(false, CardAccessManager.new(card_number, Lock.first.name, direction).process)
-    assert_equal(1, AccessLog.where({card_number: card_number, lock_id: Lock.first.id, direction: direction, access_provided: false}).size)
+    assert_equal(1, AccessLog.where({access_method: 'access_card', card_number: card_number, lock_id: Lock.first.id, direction: direction, access_provided: false}).size)
   end
 
   test 'access manager should deny access to valid cards if the assigned user have permission for given door but is disabled and log the attempt' do
@@ -67,7 +67,7 @@ class CardAccessManagerTest < ActiveSupport::TestCase
     Permission.create!(role: normal_user_role, lock: main_door_lock)
 
     assert_equal(false, CardAccessManager.new(card_number, main_door_lock.name, direction).process)
-    assert_equal(1, AccessLog.where({card_number: card_number, lock_id: main_door_lock.id, direction: direction, access_provided: false}).size)
+    assert_equal(1, AccessLog.where({access_method: 'access_card', card_number: card_number, lock_id: main_door_lock.id, direction: direction, access_provided: false}).size)
   end
 
   test 'access manager should deny access to valid cards if the assigned user is enabled and have permission for given door but card is disabled and log the attempt' do
@@ -81,7 +81,7 @@ class CardAccessManagerTest < ActiveSupport::TestCase
     Permission.create!(role: normal_user_role, lock: main_door_lock)
 
     assert_equal(false, CardAccessManager.new(card_number, main_door_lock.name, direction).process)
-    assert_equal(1, AccessLog.where({card_number: card_number, lock_id: main_door_lock.id, direction: direction, access_provided: false}).size)
+    assert_equal(1, AccessLog.where({access_method: 'access_card', card_number: card_number, lock_id: main_door_lock.id, direction: direction, access_provided: false}).size)
   end
 
 end
