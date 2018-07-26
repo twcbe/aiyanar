@@ -10,6 +10,10 @@ class MqttClient
     @client.publish topic, message
   end
 
+  attr_accessor :client
+  delegate :subscribe, to: :client
+  delegate :get, to: :client
+
   # blocking call, won't return unless an exception occurred
   def subscribe_and_run(topic, &block)
     @client.subscribe(topic)
