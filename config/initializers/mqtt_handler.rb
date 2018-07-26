@@ -1,6 +1,6 @@
 CARD_READER_TOPIC = 'access_control/card_readers'
 FACE_RECOGNITION_TOPIC = 'face_recognition'
-MQTT_BROKER_HOST = '10.137.120.19'
+MQTT_BROKER_HOST = 'localhost'
 MQTT_BROKER_PORT = 1883
 
 def log_and_ignore_exception
