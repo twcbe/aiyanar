@@ -4,7 +4,7 @@ class CardHandlerTest < ActiveSupport::TestCase
 
   test 'card handler should handle card read message and allow access for authorized card' do
     mqtt_client = Minitest::Mock.new
-    mqtt_client.expect(:publish, nil, ['access_control/server', {command: 'open_door', duration: 3, beep_tone: 'twice', lock_name: 'Main door'}.to_json])
+    mqtt_client.expect(:publish, nil, ['access_control/server', {command: 'open_door', duration: 3, beeps: 0, lock_name: 'Main door'}.to_json])
 
     security = Role.create!(name: 'Security')
     user = User.create!(name: 'test user', roles: [security], enabled: true)
@@ -26,7 +26,7 @@ class CardHandlerTest < ActiveSupport::TestCase
 
   test 'card handler should handle card read message and deny access for unauthorized card' do
     mqtt_client = Minitest::Mock.new
-    mqtt_client.expect(:publish, nil, ['access_control/server', {command: 'deny_access', beep_tone: 'something', feedback_led: 'toggle_twice'}.to_json])
+    mqtt_client.expect(:publish, nil, ['access_control/server', {command: 'deny_access', beeps: 2, feedback_led: 'toggle_twice'}.to_json])
 
     message = {
         'message' => 'card_read',
@@ -93,7 +93,7 @@ class CardHandlerTest < ActiveSupport::TestCase
 
   test 'card_handler.process should route given message to corresponding method' do
     mqtt_client = Minitest::Mock.new
-    mqtt_client.expect(:publish, nil, ['access_control/server', {command: 'open_door', duration: 3, beep_tone: 'twice', lock_name: 'Main door'}.to_json])
+    mqtt_client.expect(:publish, nil, ['access_control/server', {command: 'open_door', duration: 3, beeps: 0, lock_name: 'Main door'}.to_json])
 
     security = Role.create!(name: 'Security')
     user = User.create!(name: 'test user', roles: [security], enabled: true)

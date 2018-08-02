@@ -12,10 +12,10 @@ class FaceHandler
     is_access_allowed = EmployeeAccessManager.new(message['employee_id'], lock_name, direction).process
     if is_access_allowed
       Rails.logger.info "[face_handler] Provided access to employee id #{message['employee_id']} at #{lock_name}"
-      payload = {command: 'open_door', duration: 5, beep_tone: 'twice', lock_name: lock_name}.to_json
+      payload = {command: 'open_door', duration: 5, beeps: 1, lock_name: lock_name}.to_json
     else
       Rails.logger.info "[face_handler] Denied access to employee id #{message['employee_id']}"
-      payload = {command: 'deny_access', beep_tone: 'something', feedback_led: 'toggle_twice'}.to_json
+      payload = {command: 'deny_access', beeps: 2, feedback_led: 'toggle_twice'}.to_json
     end
     Rails.logger.info "[face_handler] sending message: #{payload}"
     @mqtt_client.publish(SERVER_TOPIC, payload)

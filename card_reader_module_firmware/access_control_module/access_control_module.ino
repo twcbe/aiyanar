@@ -20,9 +20,10 @@
 #define SERVER_TOPIC             "access_control/server"
 #define DOOR_UNLOCK_MIN_DURATION 1000
 #define DOOR_UNLOCK_MAX_DURATION 30000
+#define MAX_NUMBER_OF_BEEPS 5
 
-const char* ssid = FILL_IN_SSID_STRING;
-const char* password = FILL_IN_PASSWORD_STRING;
+const char* ssid = "FILL_IN_SSID_STRING";
+const char* password = "FILL_IN_PASSWORD_STRING";
 const char* mqttServer = "10.137.120.19";
 // END customizable options
 
@@ -78,7 +79,7 @@ LockStates lockState = LockStates::LOCKED;
 
 int asInteger(LockStates lockState)
 {
-    return static_cast<std::underlying_type<LockStates>::type>(lockState);
+  return static_cast<std::underlying_type<LockStates>::type>(lockState);
 }
 
 void stateChangeTo(LockStates newLockState) {
@@ -105,11 +106,20 @@ void unlockDoor() {
   digitalWrite(EXIT_CARD_READER_LED, LED_GREEN);
 }
 
-void unlockDoorFor(unsigned long durationMillis) {
+void beep(int number_of_beeps) {
+  if(number_of_beeps != 0) {
+    beepTask.setIterations(2 * number_of_beeps);
+    beepTask.setCallback(&beepOnCallback);
+    beepTask.restartDelayed(0);
+  }
+}
+
+void unlockDoorFor(unsigned long durationMillis, int number_of_beeps) {
   Serial.print("Unlocking door for ");
   Serial.print(durationMillis);
   Serial.println(" milliseconds");
   unlockDoor();
+  beep(number_of_beeps);
   lockDoorAfter(durationMillis);
   stateChangeTo(LockStates::UNLOCKED_FOR_DURATION);
 }
@@ -117,8 +127,6 @@ void unlockDoorFor(unsigned long durationMillis) {
 void beepOnCallback() {
   digitalWrite(ENTRY_CARD_READER_BEEP, BEEP_ON);
   digitalWrite(EXIT_CARD_READER_BEEP, BEEP_ON);
-  digitalWrite(ENTRY_CARD_READER_LED, LED_RED);
-  digitalWrite(EXIT_CARD_READER_LED, LED_RED);
   beepTask.setInterval(100);
   beepTask.setCallback(&beepOffCallback);
 }
@@ -129,10 +137,11 @@ void beepOffCallback() {
   beepTask.setCallback(&beepOnCallback);
 }
 
-void beepForInvalidCard() {
+void beepForInvalidCard(int number_of_beeps) {
   Serial.println("Beeping for invalid card.");
-  beepTask.setCallback(&beepOnCallback);
-  beepTask.restartDelayed(0);
+  digitalWrite(ENTRY_CARD_READER_LED, LED_RED);
+  digitalWrite(EXIT_CARD_READER_LED, LED_RED);
+  beep(number_of_beeps);
 }
 
 void enterEmergencyMode() {
@@ -314,6 +323,15 @@ void publishCardReadMessage(unsigned long cardNumber, char* direction) {
   client.publish(CARD_READER_TOPIC, payload);
 }
 
+void openDoorHandler(JsonObject &root) {
+  float duration = root["duration"];
+  duration = duration*1000;
+  int number_of_beeps = root["beeps"];
+  unsigned long unlockDuration = clamp(duration, DOOR_UNLOCK_MIN_DURATION, DOOR_UNLOCK_MAX_DURATION);
+  number_of_beeps = clamp(number_of_beeps, 0, MAX_NUMBER_OF_BEEPS);
+  unlockDoorFor(unlockDuration, number_of_beeps);
+}
+
 void callback(char* topic, byte* payload, unsigned int length) {
   //handle messages
 
@@ -330,48 +348,43 @@ void callback(char* topic, byte* payload, unsigned int length) {
   //state machine
   switch(lockState) {
     case LockStates::LOCKED:
-      if (strcmp(command, "open_door")==0)
-      {
-        float duration = root["duration"];
-        duration = duration*1000;
-        unsigned long unlockDuration = clamp(duration, DOOR_UNLOCK_MIN_DURATION, DOOR_UNLOCK_MAX_DURATION);
-        unlockDoorFor(unlockDuration);
-      }
-      if (strcmp(command, "deny_access") == 0)
-      {
-        beepForInvalidCard();
-      }
-      break;
+    if (strcmp(command, "open_door")==0)
+    {
+      openDoorHandler(root);
+    }
+    if (strcmp(command, "deny_access") == 0)
+    {
+      beepForInvalidCard(root["beep"]);
+    }
+    break;
 
     case LockStates::UNLOCKED_FOR_DURATION:
-      if (strcmp(command, "open_door")==0)
-      {
-        float duration = root["duration"];
-        duration = duration*1000;
-        unsigned long unlockDuration = clamp(duration, DOOR_UNLOCK_MIN_DURATION, DOOR_UNLOCK_MAX_DURATION);
-        unlockDoorFor(unlockDuration);
-      }
-      if (strcmp(command, "deny_access") == 0)
-      {
-        beepForInvalidCard();
-      }
-      break;
+    if (strcmp(command, "open_door")==0)
+    {
+      openDoorHandler(root);
+    }
+    if (strcmp(command, "deny_access") == 0)
+    {
+      beepForInvalidCard(root["beep"]);
+    }
+    break;
 
     case LockStates::EMERGENCY_UNLOCKED:
-      if (strcmp(command, "end_emergency")==0)
-      {
-        float duration = root["duration"];
-        float invalid_value = root["invalid_key"];
-        Serial.println(invalid_value);
-        duration = duration*1000;
-        unsigned long unlockDuration = clamp(duration, DOOR_UNLOCK_MIN_DURATION, DOOR_UNLOCK_MAX_DURATION);
-        exitEmergencyMode(unlockDuration);
-      }
-      break;
+    if (strcmp(command, "end_emergency")==0)
+    {
+      float duration = root["duration"];
+      float invalid_value = root["invalid_key"];
+      Serial.println(invalid_value);
+      duration = duration*1000;
+      unsigned long unlockDuration = clamp(duration, DOOR_UNLOCK_MIN_DURATION, DOOR_UNLOCK_MAX_DURATION);
+      exitEmergencyMode(unlockDuration);
+    }
+    break;
   }
-
-//  - server to CR {"command": "open_door", "duration": 5, "beep_tone": "twice", "lock_name": "main_door" } - whenever card is swiped
-//  - server to CR {"command": "deny_access", "beep_tone": "something", "feedback_led": "toggle_twice"}
+// ACS - Access Control System
+//  - server to ACS {"command": "open_door", "duration": 5, "beeps": 0, "lock_name": "main_door" } - whenever valid card is swiped
+//  - server to ACS {"command": "open_door", "duration": 5, "beeps": 1, "lock_name": "main_door" } - whenever valid face is recognized
+//  - server to ACS {"command": "deny_access", "beeps": 2} - whenever person is not authorized
 //
 }
 
@@ -397,9 +410,6 @@ void loop() {
     publishCardReadMessage(cardNumber, "exit");
   }
 
-  taskRunner.execute();
+  taskRunner.execute(); 
   ArduinoOTA.handle();
 }
-
-
-

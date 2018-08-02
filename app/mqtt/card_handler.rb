@@ -10,10 +10,10 @@ class CardHandler
     is_access_allowed = CardAccessManager.new(message['card_number'], message['lock_name'], message['direction']).process
     if is_access_allowed
       Rails.logger.info "[card_handler] Provided access to card number #{message['card_number']}, assigned to some user"
-      payload = {command: 'open_door', duration: 3, beep_tone: 'twice', lock_name: message['lock_name']}.to_json
+      payload = {command: 'open_door', duration: 3, beeps: 0, lock_name: message['lock_name']}.to_json
     else
       Rails.logger.info "[card_handler] Denied access to card number #{message['card_number']}"
-      payload = {command: 'deny_access', beep_tone: 'something', feedback_led: 'toggle_twice'}.to_json
+      payload = {command: 'deny_access', beeps: 2, feedback_led: 'toggle_twice'}.to_json
     end
     @mqtt_client.publish(SERVER_TOPIC, payload)
     Rails.logger.info "[card_handler] sending message: #{payload}"
