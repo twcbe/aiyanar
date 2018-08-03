@@ -15,7 +15,7 @@ class FaceHandler
       payload = {command: 'open_door', duration: 5, beeps: 1, lock_name: lock_name}.to_json
     else
       Rails.logger.info "[face_handler] Denied access to employee id #{message['employee_id']}"
-      payload = {command: 'deny_access', beeps: 2, feedback_led: 'toggle_twice'}.to_json
+      payload = {command: 'deny_access', beeps: 2}.to_json
     end
     Rails.logger.info "[face_handler] sending message: #{payload}"
     @mqtt_client.publish(SERVER_TOPIC, payload)

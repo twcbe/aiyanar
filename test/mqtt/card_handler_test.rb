@@ -26,7 +26,7 @@ class CardHandlerTest < ActiveSupport::TestCase
 
   test 'card handler should handle card read message and deny access for unauthorized card' do
     mqtt_client = Minitest::Mock.new
-    mqtt_client.expect(:publish, nil, ['access_control/server', {command: 'deny_access', beeps: 2, feedback_led: 'toggle_twice'}.to_json])
+    mqtt_client.expect(:publish, nil, ['access_control/server', {command: 'deny_access', beeps: 2}.to_json])
 
     message = {
         'message' => 'card_read',

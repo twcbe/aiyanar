@@ -22,8 +22,8 @@
 #define DOOR_UNLOCK_MAX_DURATION 30000
 #define MAX_NUMBER_OF_BEEPS 5
 
-const char* ssid = "FILL_IN_SSID_STRING";
-const char* password = "FILL_IN_PASSWORD_STRING";
+const char* ssid = FILL_IN_SSID_STRING;
+const char* password = FILL_IN_PASSWORD_STRING;
 const char* mqttServer = "10.137.120.19";
 // END customizable options
 
@@ -107,6 +107,7 @@ void unlockDoor() {
 }
 
 void beep(int number_of_beeps) {
+  number_of_beeps = clamp(number_of_beeps, 0, MAX_NUMBER_OF_BEEPS);
   if(number_of_beeps != 0) {
     beepTask.setIterations(2 * number_of_beeps);
     beepTask.setCallback(&beepOnCallback);
@@ -325,10 +326,9 @@ void publishCardReadMessage(unsigned long cardNumber, char* direction) {
 
 void openDoorHandler(JsonObject &root) {
   float duration = root["duration"];
-  duration = duration*1000;
   int number_of_beeps = root["beeps"];
+  duration = duration*1000;
   unsigned long unlockDuration = clamp(duration, DOOR_UNLOCK_MIN_DURATION, DOOR_UNLOCK_MAX_DURATION);
-  number_of_beeps = clamp(number_of_beeps, 0, MAX_NUMBER_OF_BEEPS);
   unlockDoorFor(unlockDuration, number_of_beeps);
 }
 
@@ -354,7 +354,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
     }
     if (strcmp(command, "deny_access") == 0)
     {
-      beepForInvalidCard(root["beep"]);
+      beepForInvalidCard(root["beeps"]);
     }
     break;
 
@@ -365,7 +365,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
     }
     if (strcmp(command, "deny_access") == 0)
     {
-      beepForInvalidCard(root["beep"]);
+      beepForInvalidCard(root["beeps"]);
     }
     break;
 

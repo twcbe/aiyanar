@@ -24,7 +24,7 @@ class FaceHandlerTest < ActiveSupport::TestCase
 
   test 'face handler should handle messages and deny access for unauthorized employees' do
     mqtt_client = Minitest::Mock.new
-    mqtt_client.expect(:publish, nil, ['access_control/server', {command: 'deny_access', beeps: 2, feedback_led: 'toggle_twice'}.to_json])
+    mqtt_client.expect(:publish, nil, ['access_control/server', {command: 'deny_access', beeps: 2}.to_json])
 
     message = {
         'source' => 'Main door:enter',
