@@ -8,7 +8,7 @@
 #include <WiFiUdp.h>
 #include <ArduinoOTA.h>
 
-#define VERSION_STRING "1.3"
+#define VERSION_STRING "1.4"
 #define USE_STATIC_IP
 
 // customizable options:
