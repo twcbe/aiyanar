@@ -21,6 +21,7 @@
 #define DOOR_UNLOCK_MIN_DURATION 1000
 #define DOOR_UNLOCK_MAX_DURATION 30000
 #define MAX_NUMBER_OF_BEEPS 5
+#define MAX_BEEP_DURATION 1500
 
 const char* ssid = FILL_IN_SSID_STRING;
 const char* password = FILL_IN_PASSWORD_STRING;
@@ -55,6 +56,8 @@ const char* mqttServer = "10.137.120.19";
 #define LED_GREEN     LOW
 
 #define clamp(value, min, max) ((value) > (max) ? (max) : ( (value) < (min) ? (min) : (value) ))
+
+#define getOrDefault(object, key, defaultValue) (object.containsKey(key) ? object[key] : defaultValue)
 
 enum class LockStates
 {
@@ -106,21 +109,23 @@ void unlockDoor() {
   digitalWrite(EXIT_CARD_READER_LED, LED_GREEN);
 }
 
-void beep(int number_of_beeps) {
+void beep(int number_of_beeps, int beep_duration) {
   number_of_beeps = clamp(number_of_beeps, 0, MAX_NUMBER_OF_BEEPS);
+  beep_duration = clamp(beep_duration, 0, MAX_BEEP_DURATION);
   if(number_of_beeps != 0) {
+    beepTask.setInterval(beep_duration);
     beepTask.setIterations(2 * number_of_beeps);
     beepTask.setCallback(&beepOnCallback);
-    beepTask.restartDelayed(0);
+    beepTask.restartDelayed(0); 
   }
 }
 
-void unlockDoorFor(unsigned long durationMillis, int number_of_beeps) {
+void unlockDoorFor(unsigned long durationMillis, int number_of_beeps, int beep_duration) {
   Serial.print("Unlocking door for ");
   Serial.print(durationMillis);
   Serial.println(" milliseconds");
   unlockDoor();
-  beep(number_of_beeps);
+  beep(number_of_beeps, beep_duration);  
   lockDoorAfter(durationMillis);
   stateChangeTo(LockStates::UNLOCKED_FOR_DURATION);
 }
@@ -128,7 +133,6 @@ void unlockDoorFor(unsigned long durationMillis, int number_of_beeps) {
 void beepOnCallback() {
   digitalWrite(ENTRY_CARD_READER_BEEP, BEEP_ON);
   digitalWrite(EXIT_CARD_READER_BEEP, BEEP_ON);
-  beepTask.setInterval(100);
   beepTask.setCallback(&beepOffCallback);
 }
 
@@ -138,11 +142,11 @@ void beepOffCallback() {
   beepTask.setCallback(&beepOnCallback);
 }
 
-void beepForInvalidCard(int number_of_beeps) {
+void beepForInvalidCard(int number_of_beeps, int beep_duration) {
   Serial.println("Beeping for invalid card.");
   digitalWrite(ENTRY_CARD_READER_LED, LED_RED);
   digitalWrite(EXIT_CARD_READER_LED, LED_RED);
-  beep(number_of_beeps);
+  beep(number_of_beeps, beep_duration);
 }
 
 void enterEmergencyMode() {
@@ -325,11 +329,12 @@ void publishCardReadMessage(unsigned long cardNumber, char* direction) {
 }
 
 void openDoorHandler(JsonObject &root) {
-  float duration = root["duration"];
-  int number_of_beeps = root["beeps"];
+  float duration = getOrDefault(root, "duration", 0);
+  int number_of_beeps = getOrDefault(root, "beeps", 0);
+  int beep_duration = getOrDefault(root, "beep_duration", 0);
   duration = duration*1000;
   unsigned long unlockDuration = clamp(duration, DOOR_UNLOCK_MIN_DURATION, DOOR_UNLOCK_MAX_DURATION);
-  unlockDoorFor(unlockDuration, number_of_beeps);
+  unlockDoorFor(unlockDuration, number_of_beeps, beep_duration);
 }
 
 void callback(char* topic, byte* payload, unsigned int length) {
@@ -354,7 +359,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
     }
     if (strcmp(command, "deny_access") == 0)
     {
-      beepForInvalidCard(root["beeps"]);
+      beepForInvalidCard(getOrDefault(root, "beeps", 2), getOrDefault(root, "beep_duration", 100));
     }
     break;
 
@@ -365,16 +370,14 @@ void callback(char* topic, byte* payload, unsigned int length) {
     }
     if (strcmp(command, "deny_access") == 0)
     {
-      beepForInvalidCard(root["beeps"]);
+      beepForInvalidCard(getOrDefault(root, "beeps", 2), getOrDefault(root, "beep_duration", 100));
     }
     break;
 
     case LockStates::EMERGENCY_UNLOCKED:
     if (strcmp(command, "end_emergency")==0)
     {
-      float duration = root["duration"];
-      float invalid_value = root["invalid_key"];
-      Serial.println(invalid_value);
+      float duration = getOrDefault(root, "duration", 5);
       duration = duration*1000;
       unsigned long unlockDuration = clamp(duration, DOOR_UNLOCK_MIN_DURATION, DOOR_UNLOCK_MAX_DURATION);
       exitEmergencyMode(unlockDuration);
