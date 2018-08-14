@@ -13,6 +13,14 @@ ActiveAdmin.register User do
 #   permitted
 # end
 
+  sidebar 'Quick Links', priority:9 do
+    ul do
+      li link_to "Users without cards", admin_users_path(
+          :commit => 'Filter',
+          'q[cards_id_blank]' => true)
+    end
+  end
+
   show title: :name do
 
     panel "Issued Cards" do

@@ -13,6 +13,14 @@ ActiveAdmin.register Card do
 #   permitted
 # end
 
+  sidebar 'Quick Links', priority:9 do
+    ul do
+      li link_to "Unassigned Cards", admin_cards_path(
+          :commit => 'Filter',
+          'q[user_id_blank]' => true)
+    end
+  end
+
   show title: :card_number do
 
     panel "Recent Accesses" do

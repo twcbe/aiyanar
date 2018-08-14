@@ -7,13 +7,13 @@
 #   Character.create(name: 'Luke', movie: movies.first)
 AdminUser.create!(email: 'admin@example.com', password: 'password', password_confirmation: 'password') if Rails.env.development?
 
-Lock.create!(name: 'Main entrance')
-Lock.create!(name: 'Power room')
-Lock.create!(name: 'Server room')
+main_entrance = Lock.create!(name: 'Main entrance')
+power_room = Lock.create!(name: 'Power room')
+server_room = Lock.create!(name: 'Server room')
 
 if Rails.env.development?
-  Card.create!(card_number: 'FAFA01')
-  Card.create!(card_number: 'FAFA02')
+  card1 = Card.create!(card_number: 'FAFA01')
+  card2 = Card.create!(card_number: 'FAFA02')
   Card.create!(card_number: 'FAFA03')
   Card.create!(card_number: 'FAFA04')
   Card.create!(card_number: 'FAFA05')
@@ -28,7 +28,16 @@ if Rails.env.development?
   Role.create!(name: 'Electrician')
   Role.create!(name: 'Security')
 
-  User.create!(name: 'Test user 1')
-  User.create!(name: 'Test user 2')
-  User.create!(name: 'Test user 3')
+  user1 = User.create!(name: 'Test user 1')
+  user2 = User.create!(name: 'Test user 2')
+  user3 = User.create!(name: 'Test user 3')
+
+  AccessLog.create!(user_id: user1.id, lock_id: power_room.id, card_number: card1.card_number, access_method: 'access_card', access_provided: true, direction: 'enter')
+  AccessLog.create!(user_id: user1.id, lock_id: main_entrance.id, card_number: card1.card_number, access_method: 'access_card', access_provided: true, direction: 'enter')
+  AccessLog.create!(user_id: user1.id, lock_id: server_room.id, card_number: card1.card_number, access_method: 'access_card', access_provided: false, direction: 'enter')
+  AccessLog.create!(user_id: user2.id, lock_id: power_room.id, card_number: card2.card_number, access_method: 'access_card', access_provided: true, direction: 'enter')
+  AccessLog.create!(user_id: user2.id, lock_id: power_room.id, card_number: card2.card_number, access_method: 'access_card', access_provided: true, direction: 'exit')
+  AccessLog.create!(user_id: user2.id, lock_id: main_entrance.id, access_method: 'face_recognition', access_provided: true, direction: 'enter')
+  AccessLog.create!(user_id: user2.id, lock_id: main_entrance.id, access_method: 'face_recognition', access_provided: true, direction: 'exit')
+  AccessLog.create!(user_id: user3.id, lock_id: main_entrance.id, access_method: 'face_recognition', access_provided: false, direction: 'enter')
 end

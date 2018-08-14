@@ -16,3 +16,8 @@
 // For example, to change the default status-tag color:
 //
 //   .status_tag { background: #6090DB; }
+.status_tag.enter { background: #5c9999; }
+.status_tag.exit { background: #5c995c; }
+
+.status_tag.face_recognition { background: #7b5d99; }
+.status_tag.access_card { background: #5d7b99; }
