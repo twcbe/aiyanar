@@ -8,7 +8,7 @@
 #include <WiFiUdp.h>
 #include <ArduinoOTA.h>
 
-#define VERSION_STRING "1.4"
+#define VERSION_STRING "1.5"
 #define USE_STATIC_IP
 
 // customizable options:
@@ -73,8 +73,7 @@ void beepOffCallback();
 Scheduler taskRunner;
 Task lockDoorTask(0, 1, &lockDoorCallback);
 Task beepTask(100, 4, &beepOnCallback);
-WIEGAND entryCardReader;
-WIEGAND exitCardReader;
+WIEGAND wg;
 WiFiClient espClient;
 PubSubClient client(espClient);
 
@@ -209,8 +208,15 @@ void setup() {
   setupOTA();
   client.setServer(mqttServer, 1883);
   client.setCallback(callback);
-  entryCardReader.begin(ENTRY_CARD_READER_DATA0, ENTRY_CARD_READER_DATA1);
-  exitCardReader.begin(EXIT_CARD_READER_DATA0,   EXIT_CARD_READER_DATA1);
+
+  //Entry card reader (GateA in Wiegand library)
+  wg.D0PinA = ENTRY_CARD_READER_DATA0;
+  wg.D1PinA = ENTRY_CARD_READER_DATA1;
+  //Exit card reader  (GateB in Wiegand library)
+  wg.D0PinB = EXIT_CARD_READER_DATA0;
+  wg.D1PinB = EXIT_CARD_READER_DATA1;
+  // wg.begin(GateA , GateB, GateC)
+  wg.begin(true, true, false);
 
   taskRunner.init();
   taskRunner.addTask(lockDoorTask);
@@ -310,7 +316,7 @@ void reconnect() {
   }
 }
 
-void publishCardReadMessage(unsigned long cardNumber, char* direction) {
+void publishCardReadMessage(unsigned long cardNumber, const char* direction) {
   char cardNumberHex[100]="";
   snprintf(cardNumberHex, sizeof(cardNumberHex), "%lX", cardNumber);
   char payload[250]={};
@@ -401,16 +407,10 @@ void loop() {
   }
   client.loop();
 
-  //card reader 1
-  if (entryCardReader.available()) {
-    unsigned long cardNumber = entryCardReader.getCode();
-    publishCardReadMessage(cardNumber, "enter");
-  }
-
-  //card reader 2
-  if (exitCardReader.available()) {
-    unsigned long cardNumber = exitCardReader.getCode();
-    publishCardReadMessage(cardNumber, "exit");
+  //card readers
+  if (wg.available()) {
+    unsigned long cardNumber = wg.getCode();
+    publishCardReadMessage(cardNumber, (wg.getGateActive() == 1 ? "enter" : "exit"));
   }
 
   taskRunner.execute(); 
