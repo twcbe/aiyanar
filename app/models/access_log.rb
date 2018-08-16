@@ -20,4 +20,7 @@ class AccessLog < ApplicationRecord
     AccessLog.where(lock_id: lock.id).order(:created_at).reverse_order.limit(count)
   end
 
+  def self.latest_for_users_currently_behind(lock)
+    AccessLog.where('user_id is not null').where(lock_id: lock.id).group('user_id').having('MAX(ROWID)').order('ROWID').to_a
+  end
 end

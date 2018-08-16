@@ -21,7 +21,7 @@ if Rails.env.development?
   Card.create!(card_number: 'FAFA07')
   Card.create!(card_number: 'FAFA08')
   Card.create!(card_number: 'FAFA09')
-  Card.create!(card_number: 'FAFA10')
+  card0 = Card.create!(card_number: 'FAFA10')
 
   Role.create!(name: 'Normal Employee')
   Role.create!(name: 'Infra team')
@@ -32,8 +32,9 @@ if Rails.env.development?
   user2 = User.create!(name: 'Test user 2')
   user3 = User.create!(name: 'Test user 3')
 
+  AccessLog.create!(lock_id: power_room.id, card_number: card0.card_number, access_method: 'access_card', access_provided: false, direction: 'enter')
   AccessLog.create!(user_id: user1.id, lock_id: power_room.id, card_number: card1.card_number, access_method: 'access_card', access_provided: true, direction: 'enter')
-  AccessLog.create!(user_id: user1.id, lock_id: main_entrance.id, card_number: card1.card_number, access_method: 'access_card', access_provided: true, direction: 'enter')
+  AccessLog.create!(user_id: user1.id, lock_id: main_entrance.id, card_number: card1.card_number, access_method: 'access_card', access_provided: true, direction: 'exit')
   AccessLog.create!(user_id: user1.id, lock_id: server_room.id, card_number: card1.card_number, access_method: 'access_card', access_provided: false, direction: 'enter')
   AccessLog.create!(user_id: user2.id, lock_id: power_room.id, card_number: card2.card_number, access_method: 'access_card', access_provided: true, direction: 'enter')
   AccessLog.create!(user_id: user2.id, lock_id: power_room.id, card_number: card2.card_number, access_method: 'access_card', access_provided: true, direction: 'exit')
