@@ -8,7 +8,7 @@
 #include <WiFiUdp.h>
 #include <ArduinoOTA.h>
 
-#define VERSION_STRING "1.5"
+#define VERSION_STRING "1.6"
 #define USE_STATIC_IP
 
 // customizable options:
@@ -335,9 +335,9 @@ void publishCardReadMessage(unsigned long cardNumber, const char* direction) {
 }
 
 void openDoorHandler(JsonObject &root) {
-  float duration = getOrDefault(root, "duration", 0);
+  float duration = getOrDefault(root, "duration", 5);
   int number_of_beeps = getOrDefault(root, "beeps", 0);
-  int beep_duration = getOrDefault(root, "beep_duration", 0);
+  int beep_duration = getOrDefault(root, "beep_duration", 200);
   duration = duration*1000;
   unsigned long unlockDuration = clamp(duration, DOOR_UNLOCK_MIN_DURATION, DOOR_UNLOCK_MAX_DURATION);
   unlockDoorFor(unlockDuration, number_of_beeps, beep_duration);
