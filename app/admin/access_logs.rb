@@ -20,7 +20,9 @@ ActiveAdmin.register AccessLog do
     column("Id", :sortable => :id) {|access_log| link_to "#{access_log.id}", admin_access_log_path(access_log)}
     column("Lock", :sortable => :lock_id) {|access_log| link_to "#{access_log.lock.name}", admin_lock_path(access_log.lock)}
     column("Card Number", :sortable => :card_number) {|access_log| "#{access_log.card_number}"}
-    column("User", :sortable => :user_id) {|access_log| link_to "#{access_log.user.name}", admin_user_path(access_log.user)}
+    column("User", :sortable => :user_id) do |access_log|
+      link_to "#{access_log.user.name}", admin_user_path(access_log.user) unless access_log.user.nil?
+    end
     column("Direction", :sortable => :direction) do |access_log|
       a href: admin_access_logs_path(:commit => 'Filter', 'q[direction_equals]' => access_log.direction) do
         status_tag("#{access_log.direction}")
