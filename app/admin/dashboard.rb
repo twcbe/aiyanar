@@ -11,8 +11,11 @@ ActiveAdmin.register_page "Dashboard" do
         def show_panel(lock_name, access_logs)
           panel "#{lock_name}: #{access_logs.count}" do
             table_for access_logs do
+              column('User') do |access_log|
+                link_to "#{access_log.user.id}", admin_user_path(access_log.user)
+              end
               column('Employee Id') do |access_log|
-                link_to access_log.user.id, admin_user_path(access_log.user)
+                "#{access_log.user.employee_id}"
               end
               column('Name') {|access_log| access_log.user.name}
               column('Entry') {|access_log| access_log.created_at}

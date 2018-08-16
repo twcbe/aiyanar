@@ -28,8 +28,8 @@ if Rails.env.development?
   Role.create!(name: 'Electrician')
   Role.create!(name: 'Security')
 
-  user1 = User.create!(name: 'Test user 1')
-  user2 = User.create!(name: 'Test user 2')
+  user1 = User.create!(name: 'Test user 1', employee_id: 101)
+  user2 = User.create!(name: 'Test user 2', employee_id: 102)
   user3 = User.create!(name: 'Test user 3')
 
   AccessLog.create!(lock_id: power_room.id, card_number: card0.card_number, access_method: 'access_card', access_provided: false, direction: 'enter')
