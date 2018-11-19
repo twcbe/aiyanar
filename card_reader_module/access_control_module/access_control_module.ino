@@ -8,7 +8,7 @@
 #include <WiFiUdp.h>
 #include <ArduinoOTA.h>
 
-#define VERSION_STRING "1.6"
+#define VERSION_STRING "1.7"
 #define USE_STATIC_IP
 
 // customizable options:
@@ -126,7 +126,7 @@ void beep(int number_of_beeps, int beep_duration) {
     beepTask.setInterval(beep_duration);
     beepTask.setIterations(2 * number_of_beeps);
     beepTask.setCallback(&beepOnCallback);
-    beepTask.restartDelayed(0); 
+    beepTask.restartDelayed(0);
   }
 }
 
@@ -135,7 +135,7 @@ void unlockDoorFor(unsigned long durationMillis, int number_of_beeps, int beep_d
   Serial.print(durationMillis);
   Serial.println(" milliseconds");
   unlockDoor();
-  beep(number_of_beeps, beep_duration);  
+  beep(number_of_beeps, beep_duration);
   lockDoorAfter(durationMillis);
   stateChangeTo(LockStates::UNLOCKED_FOR_DURATION);
 }
@@ -367,6 +367,10 @@ void callback(char* topic, byte* payload, unsigned int length) {
   {
     enterEmergencyMode();
   }
+  if (strcmp(command, "restart")==0)
+  {
+    ESP.reset();
+  }
   //state machine
   switch(lockState) {
     case LockStates::LOCKED:
@@ -424,6 +428,6 @@ void loop() {
     publishCardReadMessage(cardNumber, (wg.getGateActive() == 1 ? "enter" : "exit"));
   }
 
-  taskRunner.execute(); 
+  taskRunner.execute();
   ArduinoOTA.handle();
 }
