@@ -8,6 +8,10 @@
 #include <WiFiUdp.h>
 #include <ArduinoOTA.h>
 
+extern "C" {
+  #include <user_interface.h>
+}
+
 #define VERSION_STRING "1.7"
 #define USE_STATIC_IP
 
@@ -22,6 +26,7 @@
 #define DOOR_UNLOCK_MAX_DURATION 30000
 #define MAX_NUMBER_OF_BEEPS 5
 #define MAX_BEEP_DURATION 1500
+#define HEART_BEAT_DELAY 10000
 
 const char* ssid = FILL_IN_SSID_STRING;
 const char* password = FILL_IN_PASSWORD_STRING;
@@ -83,10 +88,13 @@ enum class LockStates
 void lockDoorCallback();
 void beepOnCallback();
 void beepOffCallback();
+void heartBeatCallback();
 
 Scheduler taskRunner;
 Task lockDoorTask(0, 1, &lockDoorCallback);
 Task beepTask(100, 4, &beepOnCallback);
+Task heartBeatTask(HEART_BEAT_DELAY, TASK_FOREVER, &heartBeatCallback);
+
 WIEGAND wg;
 WiFiClient espClient;
 PubSubClient client(espClient);
@@ -96,6 +104,17 @@ LockStates lockState = LockStates::LOCKED;
 int asInteger(LockStates lockState)
 {
   return static_cast<std::underlying_type<LockStates>::type>(lockState);
+}
+
+void heartBeatCallback() {
+  uint32_t freeMemory = system_get_free_heap_size();
+
+  Serial.print("free memory: ");
+  Serial.println(freeMemory);
+
+  char buffer[150];
+  snprintf(buffer, sizeof(buffer), "[" LOCK_NAME "] (%s) free_memory: %u", WiFi.localIP().toString().c_str(), freeMemory);
+  client.publish(CARD_READER_TOPIC, buffer);
 }
 
 void stateChangeTo(LockStates newLockState) {
@@ -235,6 +254,7 @@ void setup() {
   taskRunner.init();
   taskRunner.addTask(lockDoorTask);
   taskRunner.addTask(beepTask);
+  taskRunner.addTask(heartBeatTask);
 
   loadStateFromStorage();
   publishStartupMessage();
