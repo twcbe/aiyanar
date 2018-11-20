@@ -70,6 +70,9 @@ const char* mqttServer = "10.137.120.19";
 
 #define getOrDefault(object, key, defaultValue) (object.containsKey(key) ? object[key] : defaultValue)
 
+#define stringEquals(str1, str2)    (strcmp(str1, str2)==0)
+#define stringNotEquals(str1, str2) (strcmp(str1, str2)!=0)
+
 enum class LockStates
 {
   LOCKED,
@@ -298,8 +301,7 @@ void setupWifi() {
     delay(500);
     Serial.print(".");
     tries++;
-    if (tries>20)
-    {
+    if (tries>20) {
       Serial.print("Connection failed. Rebooting...");
       ESP.restart();
     }
@@ -359,45 +361,44 @@ void callback(char* topic, byte* payload, unsigned int length) {
 
   DynamicJsonBuffer  jsonBuffer(200);
   JsonObject& root = jsonBuffer.parseObject((const char*) payload);
-  const char *message = root["message"];
-  const char *lockName = root["lock_name"];
-  const char *command = root["command"];
+  const char *lockName = root["lock_name"] | "";
+  const char *command = root["command"] | "";
 
-  if (strcmp(command, "start_emergency")==0)
-  {
+  if (strcmp(command, "start_emergency")==0) {
     enterEmergencyMode();
   }
-  if (strcmp(command, "restart")==0)
-  {
+
+  if (stringNotEquals(lockName, LOCK_NAME) && stringNotEquals(lockName, "all")) {
+    //don't process messages not intended for this node
+    return;
+  }
+
+  if (strcmp(command, "restart")==0) {
     ESP.reset();
   }
+
   //state machine
   switch(lockState) {
     case LockStates::LOCKED:
-    if (strcmp(command, "open_door")==0)
-    {
+    if (strcmp(command, "open_door")==0) {
       openDoorHandler(root);
     }
-    if (strcmp(command, "deny_access") == 0)
-    {
+    if (strcmp(command, "deny_access") == 0) {
       beepForInvalidCard(getOrDefault(root, "beeps", 2), getOrDefault(root, "beep_duration", 100));
     }
     break;
 
     case LockStates::UNLOCKED_FOR_DURATION:
-    if (strcmp(command, "open_door")==0)
-    {
+    if (strcmp(command, "open_door")==0) {
       openDoorHandler(root);
     }
-    if (strcmp(command, "deny_access") == 0)
-    {
+    if (strcmp(command, "deny_access") == 0) {
       beepForInvalidCard(getOrDefault(root, "beeps", 2), getOrDefault(root, "beep_duration", 100));
     }
     break;
 
     case LockStates::EMERGENCY_UNLOCKED:
-    if (strcmp(command, "end_emergency")==0)
-    {
+    if (strcmp(command, "end_emergency")==0) {
       float duration = getOrDefault(root, "duration", 5);
       duration = duration*1000;
       unsigned long unlockDuration = clamp(duration, DOOR_UNLOCK_MIN_DURATION, DOOR_UNLOCK_MAX_DURATION);
