@@ -26,7 +26,7 @@ extern "C" {
 #define DOOR_UNLOCK_MAX_DURATION 30000
 #define MAX_NUMBER_OF_BEEPS 5
 #define MAX_BEEP_DURATION 1500
-#define HEART_BEAT_DELAY 10000
+#define HEART_BEAT_DELAY 30000
 
 const char* ssid = FILL_IN_SSID_STRING;
 const char* password = FILL_IN_PASSWORD_STRING;
@@ -255,6 +255,7 @@ void setup() {
   taskRunner.addTask(lockDoorTask);
   taskRunner.addTask(beepTask);
   taskRunner.addTask(heartBeatTask);
+  heartBeatTask.enable();
 
   loadStateFromStorage();
   publishStartupMessage();
