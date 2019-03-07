@@ -27,19 +27,19 @@ ActiveAdmin.register AccessLog, as: "Daily Access Logs" do
   # includes :user, :card, :lock
   actions :index
   config.batch_actions = false
-  # filter :created_at
+  filter :created_at
 
   index do
-    column('Date') {|access_log| access_log.date}
-    column('User') do |access_log|
+    column('Date', sortable: "date") {|access_log| access_log.date}
+    column('User', sortable: "user_id") do |access_log|
       link_to "#{access_log.user.name}", admin_user_path(access_log.user)
     end
-    column('Employee Id') do |access_log|
+    column('Employee Id', sortable: false) do |access_log|
       "#{access_log.user.employee_id}"
     end
-    column('Card number') {|access_log| access_log.card_number}
-    column('First Entry') {|access_log| access_log.first_enter}
-    column('Last Exit') {|access_log| access_log.last_exit}
+    column('Card number', sortable: "card_number") {|access_log| access_log.card_number}
+    column('First Entry', sortable: "fisrt_enter") {|access_log| access_log.first_enter}
+    column('Last Exit', sortable: "last_exit") {|access_log| access_log.last_exit}
   end
 
   csv do
