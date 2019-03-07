@@ -25,4 +25,11 @@ class AccessLog < ApplicationRecord
       access_log.direction == 'enter'
     end
   end
+
+  def self.fist_in_last_out_entries_per_day(lock)
+    AccessLog.select("date(created_at) date, lock_id, user_id, card_number, time(min(CASE WHEN direction = 'enter' THEN created_at ELSE null END)) \"first_enter\", time(max(CASE WHEN direction = 'enter' THEN created_at ELSE null END)) \"last_enter\", time(min(CASE WHEN direction = 'exit' THEN created_at ELSE null END)) \"first_exit\", time(max(CASE WHEN direction = 'exit' THEN created_at ELSE null END)) \"last_exit\"")
+    .where("user_id is not null")
+    .where(lock_id: lock.id)
+    .group("user_id, lock_id,card_number, date(created_at)")
+  end
 end
