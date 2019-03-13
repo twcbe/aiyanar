@@ -12,12 +12,14 @@ ActiveAdmin.register_page "Dashboard" do
           panel "#{lock_name}: #{access_logs.count}" do
             table_for access_logs do
               column('User') do |access_log|
-                link_to "#{access_log.user.id}", admin_user_path(access_log.user)
+                access_log.user ?
+                link_to("#{access_log.user.id}", admin_user_path(access_log.user)) :
+                "N/A"
               end
               column('Employee Id') do |access_log|
-                "#{access_log.user.employee_id}"
+                "#{access_log.user.try :employee_id}"
               end
-              column('Name') {|access_log| access_log.user.name}
+              column('Name') {|access_log| access_log.user.try :name}
               column('Entry') {|access_log| access_log.created_at}
               column('Entry method') {|access_log| status_tag access_log.access_method}
               column('Card number') {|access_log| access_log.card_number}
