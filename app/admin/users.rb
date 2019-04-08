@@ -86,7 +86,7 @@ ActiveAdmin.register User do
       f.input :roles
       f.input :enabled
     end
-    f.actions
+    f.actions :all, :except => [:destroy]
   end
 
 end

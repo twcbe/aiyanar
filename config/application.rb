@@ -11,6 +11,7 @@ module BackendService
     # Initialize configuration defaults for originally generated Rails version.
     config.load_defaults 5.2
     config.read_encrypted_secrets = false
+    config.time_zone = 'Asia/Kolkata'
 
     config.after_initialize do
       ActiveRecord::Tasks::DatabaseTasks.migrate

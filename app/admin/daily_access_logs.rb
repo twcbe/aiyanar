@@ -1,41 +1,19 @@
-ActiveAdmin.register AccessLog, as: "Daily Access Logs" do
-# See permitted parameters documentation:
-# https://github.com/activeadmin/activeadmin/blob/master/docs/2-resource-customization.md#setting-up-strong-parameters
-#
-# permit_params :list, :of, :attributes, :on, :model
-#
-# or
-#
-# permit_params do
-#   permitted = [:permitted, :attributes]
-#   permitted << :other if params[:action] == 'create' && current_user.admin?
-#   permitted
-# end
-
-  Lock.all.each do |lock|
-    scope lock.name.to_sym, default: true do |access_log|
-      access_log = access_log.fist_in_last_out_entries_per_day(lock)
-    end
-  end
-
-  controller do
-    def scoped_collection
-      AccessLog.fist_in_last_out_entries_per_day(Lock.all.first)
-    end
-  end
-
-  # includes :user, :card, :lock
+ActiveAdmin.register DailyAccessLog, as: "Daily Access Logs" do
   actions :index
   config.batch_actions = false
-  filter :created_at
+  filter :user
+  filter :lock
+  filter :date, as: :date_range
 
   index do
     column('Date', sortable: "date") {|access_log| access_log.date}
     column('User', sortable: "user_id") do |access_log|
-      link_to "#{access_log.user.name}", admin_user_path(access_log.user)
+      access_log.user ?
+      link_to(access_log.user_name, admin_user_path(access_log.user)) :
+      ""
     end
     column('Employee Id', sortable: false) do |access_log|
-      "#{access_log.user.employee_id}"
+      access_log.user_employee_id
     end
     column('Card number', sortable: "card_number") {|access_log| access_log.card_number}
     column('First Entry', sortable: "fisrt_enter") {|access_log| access_log.first_enter}
@@ -45,11 +23,11 @@ ActiveAdmin.register AccessLog, as: "Daily Access Logs" do
   csv do
     column('Date') {|access_log| access_log.date}
     column('Employee Id') do |access_log|
-      "#{access_log.user.employee_id}"
+      access_log.user_employee_id
     end
-    column('Name') {|access_log| access_log.user.name}
+    column('Name') {|access_log| access_log.user_name}
     column('Card number') {|access_log| access_log.card_number}
-    column('First Entry') {|access_log| access_log.first_enter}
-    column('Last Exit') {|access_log| access_log.last_exit}
+    column('First Entry') {|access_log| access_log.first_enter.try :strftime, "%I:%M %P"}
+    column('Last Exit') {|access_log| access_log.last_exit.try :strftime, "%I:%M %P" }
   end
 end
