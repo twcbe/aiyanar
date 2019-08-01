@@ -13,6 +13,8 @@ ActiveAdmin.register User do
 #   permitted
 # end
 
+  actions :all, :except => [:destroy]
+
   sidebar 'Quick Links', priority:9 do
     ul do
       li link_to "Users without cards", admin_users_path(
