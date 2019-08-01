@@ -12,8 +12,8 @@ extern "C" {
   #include <user_interface.h>
 }
 
-#define VERSION_STRING "1.7"
-#define USE_STATIC_IP
+#define VERSION_STRING "1.8"
+// #define USE_STATIC_IP
 
 // customizable options:
 #define STATIC_IP_ADDRESS        10, 137,120,250
@@ -30,7 +30,7 @@ extern "C" {
 
 const char* ssid = FILL_IN_SSID_STRING;
 const char* password = FILL_IN_PASSWORD_STRING;
-const char* mqttServer = "10.137.120.19";
+const char* mqttServer = "10.137.140.10";
 // END customizable options
 
 #define d0 16
