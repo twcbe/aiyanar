@@ -8,8 +8,8 @@ ActiveAdmin.register_page "Dashboard" do
     columns do
       column do
 
-        def show_panel(lock_name, access_logs)
-          panel "#{lock_name}: #{access_logs.count}" do
+        def show_panel(room_name, access_logs)
+          panel "#{room_name}: #{access_logs.count}" do
             table_for access_logs do
               column('User') do |access_log|
                 access_log.user ?
@@ -30,10 +30,17 @@ ActiveAdmin.register_page "Dashboard" do
           end
         end
 
-        Lock.all.each do |lock|
-          users = AccessLog.latest_for_users_currently_behind(lock)
-          show_panel lock.name, users
-        end
+        # Lock.all.each do |lock|
+        #   users = AccessLog.latest_for_users_currently_behind(lock)
+        #   show_panel lock.name, users
+        # end
+
+        Room.all.each do |room|
+          users=AccessLog.latest_for_users_currently_behind(room)
+          show_panel room.name, users
+         end 
+
+
       end
 
       # column do

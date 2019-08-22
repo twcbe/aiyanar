@@ -24,7 +24,19 @@ class AccessLog < ApplicationRecord
 
   def self.latest_for_users_currently_behind(lock)
     AccessLog.where('user_id is not null').where(lock_id: lock.id).group('user_id').having('MAX(ROWID)').order('ROWID').to_a.select do |access_log|
-      access_log.direction == 'enter'
+       access_log.direction == 'enter'
     end
   end
+
+
+
+  def  self.latest_for_users_currently_behind(room)
+    lock_ids = room.locks.collect {|lock| lock.id}
+    AccessLog.where('user_id is not null').where(access_provided: true).where(lock_id: lock_ids).group('user_id').having('MAX(ROWID)').order('ROWID').to_a.select do |access_log|
+       access_log.direction == 'enter'
+    end    
+  end
+
+
+
 end

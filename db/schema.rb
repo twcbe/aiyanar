@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2019_04_08_171058) do
+ActiveRecord::Schema.define(version: 2019_08_22_114331) do
 
   create_table "access_logs", force: :cascade do |t|
     t.integer "lock_id", null: false
@@ -82,6 +82,12 @@ ActiveRecord::Schema.define(version: 2019_04_08_171058) do
     t.datetime "updated_at", null: false
     t.index ["role_id"], name: "index_roles_users_on_role_id"
     t.index ["user_id"], name: "index_roles_users_on_user_id"
+  end
+
+  create_table "rooms", force: :cascade do |t|
+    t.string "name"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
   end
 
   create_table "users", force: :cascade do |t|
