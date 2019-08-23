@@ -18,8 +18,9 @@ class CardAccessManagerTest < ActiveSupport::TestCase
   test 'access manager should deny access to invalid cards and log the attempt' do
     card_number = 'INVALID'
     direction = 'enter'
+    lock_name = 'Main door'
+    Lock.create!(name: lock_name)
     actual = CardAccessManager.new(card_number, Lock.first.name, direction).process
-
     assert_equal(false, actual)
     assert_equal(1, AccessLog.where({access_method: 'access_card', card_number: card_number, lock_id: Lock.first.id, direction: direction, access_provided: false}).size)
   end
@@ -28,7 +29,8 @@ class CardAccessManagerTest < ActiveSupport::TestCase
     card_number = 'AABBCCDD'
     direction = 'enter'
     Card.create!(card_number: card_number, enabled: true)
-
+    lock_name = 'Main door'
+    Lock.create!(name: lock_name)
     assert_equal(false, CardAccessManager.new(card_number, Lock.first.name, direction).process)
     assert_equal(1, AccessLog.where({access_method: 'access_card', card_number: card_number, lock_id: Lock.first.id, direction: direction, access_provided: false}).size)
   end
