@@ -30,24 +30,14 @@ ActiveAdmin.register_page "Dashboard" do
           end
         end
 
-        # Lock.all.each do |lock|
-        #   users = AccessLog.latest_for_users_currently_behind(lock)
-        #   show_panel lock.name, users
-        # end
-
         Room.all.each do |room|
-          users=AccessLog.latest_for_users_currently_behind(room)
+          users=AccessLog.latest_for_users_currently_behind_room(room)
           show_panel room.name, users
          end 
 
 
       end
 
-      # column do
-      #   panel "Info" do
-      #     para "Welcome to ActiveAdmin."
-      #   end
-      # end
     end
 
     div class: "blank_slate_container", id: "dashboard_default_message" do

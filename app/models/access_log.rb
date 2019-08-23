@@ -22,21 +22,16 @@ class AccessLog < ApplicationRecord
     AccessLog.where(lock_id: lock.id).order(:created_at).reverse_order.limit(count)
   end
 
-  def self.latest_for_users_currently_behind(lock)
+  def self.latest_for_users_currently_behind_lock(lock)
     AccessLog.where('user_id is not null').where(lock_id: lock.id).group('user_id').having('MAX(ROWID)').order('ROWID').to_a.select do |access_log|
-       access_log.direction == 'enter'
-    end
+       access_log.direction == AccessLog.directions[:enter]
+     end
   end
 
-
-
-  def  self.latest_for_users_currently_behind(room)
+  def  self.latest_for_users_currently_behind_room(room)
     lock_ids = room.locks.collect {|lock| lock.id}
     AccessLog.where('user_id is not null').where(access_provided: true).where(lock_id: lock_ids).group('user_id').having('MAX(ROWID)').order('ROWID').to_a.select do |access_log|
-       access_log.direction == 'enter'
+       access_log.direction == AccessLog.directions[:enter]
     end    
   end
-
-
-
 end
