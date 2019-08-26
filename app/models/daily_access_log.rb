@@ -1,6 +1,6 @@
 class DailyAccessLog < ApplicationRecord
   belongs_to :user
-  belongs_to :lock
+  belongs_to :room
 
   include ::BelongsToUser
 
