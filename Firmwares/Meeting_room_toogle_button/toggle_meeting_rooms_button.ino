@@ -1,4 +1,4 @@
-/*
+
 #include <ESP8266WiFi.h>
 #include <PubSubClient.h>
 
@@ -86,4 +86,3 @@ void loop() {
   }
   lastButtonState = reading;
 }
-*/
