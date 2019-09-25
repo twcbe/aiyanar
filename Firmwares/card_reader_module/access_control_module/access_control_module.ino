@@ -47,8 +47,8 @@ const char* mqttServer = "10.137.140.10";
 #define ENTRY_CARD_READER_DATA1 d6
 #define ENTRY_CARD_READER_LED   d8
 #define ENTRY_CARD_READER_BEEP  d5
-#define EXIT_CARD_READER_DATA0  d3
-#define EXIT_CARD_READER_DATA1  d4
+#define EXIT_CARD_READER_DATA0  d4
+#define EXIT_CARD_READER_DATA1  d3
 #define EXIT_CARD_READER_LED    d2
 #define EXIT_CARD_READER_BEEP   d1
 #define LOCK_RELAY              d0
