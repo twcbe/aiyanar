@@ -84,5 +84,5 @@ void loop() {
       }
     }
   }
-  lastButtonState = reading;
+   lastButtonState = reading;
 }
