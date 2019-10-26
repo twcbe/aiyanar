@@ -1,0 +1,2 @@
+class EmergencyStatus < ApplicationRecord	
+end
